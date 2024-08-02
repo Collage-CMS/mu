@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "py-mu"
+version = "0.1.0"
+description = "Represent HTML and XML using Python data structures."
+authors = ["Marc van Grootel <marc.vangrootel@fontys.nl>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyyaml = "^6.0.1"
+saxonche = "^12.5.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
