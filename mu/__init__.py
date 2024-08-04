@@ -110,7 +110,7 @@ def _convert_node(node, mode: str = "xml"):
                     for x in _convert_node(ext):
                         yield x
                 else:
-                    yield ext
+                    yield util.escape_html(ext)
             yield f"</{node_tag}>"
         else:
             yield f"<{node_tag}{node_attrs}/>"
