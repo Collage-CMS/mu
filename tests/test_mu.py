@@ -224,3 +224,16 @@ class TestWrapper:
         wrapper = ["foo", {"x": 10}]
         result = ["foo", {"x": 10}, ["bar"], ["baz"]]
         assert mu.wrap(wrapper, ["bar"], ["baz"]) == result
+
+
+class TestTagFormatting:
+    # FIXME html, xhtml have particular rules re self-closing or not
+    #       these elements are:
+    #       area, base, br, col, command, embed, hr, img, input, keygen,
+    #       link, meta, param, source, track, wbr
+    def test_empty_elements(self):
+        assert mu.markup(["img"]) == "<img/>"
+        assert mu.markup(["img", {"src": "foo"}]) == '<img src="foo"/>'
+        assert mu.markup(["img"], mode="xhtml") == "<img />"
+        assert mu.markup(["img"], mode="html") == "<img>"
+        assert mu.markup(["img"], mode="sgml") == "<img>"

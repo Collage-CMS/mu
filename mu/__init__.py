@@ -14,6 +14,24 @@ from __future__ import annotations
 import mu.util as util
 
 TREE_TYPE = (list, tuple)
+VOID_TAGS = {
+    "area",
+    "base",
+    "br",
+    "col",
+    "command",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "keygen",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+}
 
 
 def _is_element(value):
@@ -113,10 +131,22 @@ def _convert_node(node, mode: str = "xml"):
                     yield util.escape_html(ext)
             yield f"</{node_tag}>"
         else:
-            yield f"<{node_tag}{node_attrs}/>"
+            if node_tag in VOID_TAGS and mode in {"html", "xhtml"}:
+                yield f"<{node_tag}{node_attrs}{_end_tag(mode)}"
+            elif mode in {"xml", "sgml"}:
+                yield f"<{node_tag}{node_attrs}{_end_tag(mode)}"
+            else:
+                yield f"<{node_tag}{node_attrs}></{node_tag}>"
 
 
 # mode: html, xhtml, xml, sgml (default xml)
+def _end_tag(mode):
+    if mode == "xml":
+        return "/>"
+    elif mode == "xhtml":
+        return " />"
+    else:
+        return ">"
 
 
 def markup(*nodes, mode: str = "xml"):
@@ -129,6 +159,5 @@ def markup(*nodes, mode: str = "xml"):
 
 def wrap(el: list | tuple, *children):
     """Wrap XML"""
-    for node in children:
-        el.append(node)
+    el.extend(children)
     return el

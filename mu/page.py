@@ -31,7 +31,7 @@ def html5(*contents):
 
 
 def xhtml(*contents):
-    return mu.markup(*contents)
+    return mu.markup(doctype["xhtml-strict"], ["html", *contents], mode="xhtml")
 
 
 def script_element(src):

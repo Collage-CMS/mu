@@ -1,33 +1,38 @@
-# Mu for Python
+# Mu
 
 Represent HTML and XML using Python data structures. Based on the Clojure
 library Hiccup created by James Reeves.
 
-Also has interop functions for the [SaxonC-HE API](https://www.saxonica.com/saxon-c/index.xml)
-via [`saxonche`](https://pypi.org/project/saxonche).
-
 ## Install
 
 ```
-pip install py-mu
+pip install mu
 ```
 
 ## Usage
 
-TBD
+```
+import mu
+
+mu.markup(["p", "Hello, ", ["b", "World"], "!"])
+```
+
+Returns the string `<p>Hello, <b>World</b>!`
 
 ## Documentation
 
 ### Special Nodes
 
-Every `tag` that starts with `$` is a special node. For XML, however, only
-`$comment`, `$pi`, and `$cdata` are meaningful.
+Every `tag` that starts with `$` is a special node. But special nodes other
+than `$comment`, `$pi`, and `$cdata` will be ignored.
 
-### Wrappers
+### Elements
+
+### Pages
+
 
 
 ## Related work
 
 - [weavejester/hiccup](https://github.com/weavejester/hiccup)
 - [nbessi/pyhiccup](https://github.com/nbessi/pyhiccup)
-- [Arkelis/hyccup](https://github.com/Arkelis/hyccup)
