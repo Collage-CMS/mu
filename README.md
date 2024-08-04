@@ -16,6 +16,16 @@ pip install py-mu
 
 TBD
 
+## Documentation
+
+### Special Nodes
+
+Every `tag` that starts with `$` is a special node. For XML, however, only
+`$comment`, `$pi`, and `$cdata` are meaningful.
+
+### Wrappers
+
+
 ## Related work
 
 - [weavejester/hiccup](https://github.com/weavejester/hiccup)

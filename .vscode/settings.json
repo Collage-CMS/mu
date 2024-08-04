@@ -13,4 +13,5 @@
         "test_*.py"
     ],
     "flake8.args": [ "--config", "setup.cfg" ],
+    "yaml.customTags": ["!dox/context mapping", "!dox mapping", "!dox/html5 mapping", "!dox/xhtml mapping", "!dox/xml mapping", "!attrs mapping"]
 }
