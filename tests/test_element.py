@@ -25,6 +25,20 @@ class TestLinkTo:
         assert el.link_to("/", "foo") == ["a", {"href": "/"}, "foo"]
         assert el.link_to("/", "foo", "bar") == ["a", {"href": "/"}, "foo", "bar"]
 
+    def test_link_to_with_attrs(self):
+        assert el.link_to("/", attrs={"x": 10}) == ["a", {"href": "/", "x": 10}, "/"]
+        assert el.link_to("/", "foo", attrs={"x": 10}) == [
+            "a",
+            {"href": "/", "x": 10},
+            "foo",
+        ]
+        assert el.link_to("/", "foo", "bar", attrs={"x": 10}) == [
+            "a",
+            {"href": "/", "x": 10},
+            "foo",
+            "bar",
+        ]
+
 
 class TestMailTo:
 
@@ -40,12 +54,33 @@ class TestMailTo:
             "foo",
         ]
 
+    def test_mail_with_attrs(self):
+        assert el.mail_to("foo@example.com", attrs={"x": 10}) == [
+            "a",
+            {"href": "mailto:foo@example.com", "x": 10},
+            "foo@example.com",
+        ]
+        assert el.mail_to("foo@example.com", "foo", attrs={"x": 10}) == [
+            "a",
+            {"href": "mailto:foo@example.com", "x": 10},
+            "foo",
+        ]
+
 
 class TestUnorderedList:
 
     def test_unordered_list(self):
         assert el.unordered_list("foo", "bar", "baz") == [
             "ul",
+            ["li", "foo"],
+            ["li", "bar"],
+            ["li", "baz"],
+        ]
+
+    def test_unordered_list_with_attrs(self):
+        assert el.unordered_list("foo", "bar", "baz", attrs={"x": 10}) == [
+            "ul",
+            {"x": 10},
             ["li", "foo"],
             ["li", "bar"],
             ["li", "baz"],
@@ -61,3 +96,20 @@ class TestOrderedList:
             ["li", "bar"],
             ["li", "baz"],
         ]
+
+    def test_ordered_list_with_attrs(self):
+        assert el.ordered_list("foo", "bar", "baz", attrs={"x": 10}) == [
+            "ol",
+            {"x": 10},
+            ["li", "foo"],
+            ["li", "bar"],
+            ["li", "baz"],
+        ]
+
+
+class TestWrapper:
+
+    def test_wrap(self):
+        wrapper = ["foo", {"x": 10}]
+        result = ["foo", {"x": 10}, ["bar"], ["baz"]]
+        assert el.wrap(wrapper, [["bar"], ["baz"]]) == result

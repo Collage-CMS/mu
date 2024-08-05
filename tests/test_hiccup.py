@@ -149,12 +149,12 @@ class TestTagAttributes:
 
     def test_boolean_attributes(self):
         assert (
-            mu.markup(["input", {"type": "checkbox", "checked": True}])
-            == '<input checked="checked" type="checkbox"/>'
+            mu.markup(["input", {"type": "checkbox", "checked": True}], mode="html")
+            == '<input checked="checked" type="checkbox">'
         )
         assert (
-            mu.markup(["input", {"type": "checkbox", "checked": False}])
-            == '<input type="checkbox"/>'
+            mu.markup(["input", {"type": "checkbox", "checked": False}], mode="html")
+            == '<input type="checkbox">'
         )
 
     def test_nil_attributes(self):
@@ -181,5 +181,5 @@ class TestRenderModes:
         )
         assert (
             mu.markup(["input", {"type": "checkbox", "checked": True}], mode="sgml")
-            == '<input checked type="checkbox"/>'
+            == '<input checked type="checkbox">'
         )

@@ -218,14 +218,6 @@ class TestYamlMu:
         assert yml.read(["foo", {"x": 10}, "bla"]) == "- foo\n- x: 10\n- bla\n"
 
 
-class TestWrapper:
-
-    def test_wrap(self):
-        wrapper = ["foo", {"x": 10}]
-        result = ["foo", {"x": 10}, ["bar"], ["baz"]]
-        assert mu.wrap(wrapper, ["bar"], ["baz"]) == result
-
-
 class TestTagFormatting:
     # FIXME html, xhtml have particular rules re self-closing or not
     #       these elements are:

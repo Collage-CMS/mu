@@ -8,4 +8,4 @@ def escape_html(text):
 
 
 def raw_string(text):
-    return text
+    return ["$raw", text]

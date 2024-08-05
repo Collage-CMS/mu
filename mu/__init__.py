@@ -78,15 +78,29 @@ def content(node):
         return []
 
 
-def _format_attrs(attributes):
+def _format_attrs(attributes, mode: str = "xml"):
     output = []
     for name, value in sorted(attributes.items()):
-        output.append(f' {name}="{util.escape_html(value)}"')
+        if value is None:
+            pass
+        elif isinstance(value, bool):
+            if value and mode == "sgml":
+                output.append(f" {name}")
+            elif value:
+                output.append(f' {name}="{name}"')
+        elif isinstance(value, list | tuple):
+            output.append(
+                f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"'
+            )
+        else:
+            output.append(f' {name}="{util.escape_html(value)}"')
     return "".join(output)
 
 
 def _format_special_node(value):
-    if tag(value) == "$comment":
+    if tag(value) == "$raw":
+        return "".join(value[1:])
+    elif tag(value) == "$comment":
         return f'<!-- {"".join(value[1:])} -->'
     elif tag(value) == "$cdata":
         return f'<![CDATA[{"".join(value[1:])}]]>'
@@ -100,7 +114,7 @@ def _convert_node(node, mode: str = "xml"):
     # optimization when we get a sequence of nodes
     if isinstance(node[0], TREE_TYPE):
         for sub_node in node:
-            for x in _convert_node(sub_node):
+            for x in _convert_node(sub_node, mode):
                 yield x
     if _is_special_node(node):
         yield _format_special_node(node)
@@ -118,14 +132,14 @@ def _convert_node(node, mode: str = "xml"):
                 else:
                     node_children.append(element)
             elif isinstance(element, dict):
-                node_attrs = _format_attrs(element)
+                node_attrs = _format_attrs(element, mode)
             else:
                 node_children.append(element)
         if node_children:
             yield f"<{node_tag}{node_attrs}>"
             for ext in node_children:
                 if isinstance(ext, TREE_TYPE):
-                    for x in _convert_node(ext):
+                    for x in _convert_node(ext, mode):
                         yield x
                 else:
                     yield util.escape_html(ext)
@@ -155,9 +169,3 @@ def markup(*nodes, mode: str = "xml"):
     for node in nodes:
         output.extend(_convert_node(node, mode))
     return "".join(output)
-
-
-def wrap(el: list | tuple, *children):
-    """Wrap XML"""
-    el.extend(children)
-    return el

@@ -1,45 +1,58 @@
 from __future__ import annotations
 
 
-def javascript_tag(script):
+def javascript_tag(script, attrs: dict = {}):
     """Wrap the javascript code in a script element and protect with CDATA section."""
-    return ["script", {"type": "text/javascript"}, f"//<![CDATA[\n{script}\n//]]>"]
+    return [
+        "script",
+        attrs | {"type": "text/javascript"},
+        f"//<![CDATA[\n{script}\n//]]>",
+    ]
 
 
 # TODO escape URI
-def link_to(url, *content):
+def link_to(url, *content, attrs: dict = {}):
     """Creat a hyperlink element. If no content is given use url."""
-    a = ["a", {"href": url}]
+    a = ["a", attrs | {"href": url}]
     a.extend(content) if content else a.append(url)
     return a
 
 
 # TODO escape URI
-def mail_to(email, *content):
+def mail_to(email, *content, attrs: dict = {}):
     """Wrap email adress in a hyperlink element. If no content is given use email."""
-    a = ["a", {"href": f"mailto:{email}"}]
+    a = ["a", attrs | {"href": f"mailto:{email}"}]
     a.extend(content) if content else a.append(email)
     return a
 
 
-def unordered_list(*items):
+def unordered_list(*items, attrs: dict = {}):
     """Wrap items in an unordered list element."""
-    ul = ["ul"]
-    ul.extend([["li", item] for item in items])
-    return ul
+    el = ["ul"]
+    if attrs:
+        el.append(attrs)
+    return wrap(el, [["li", item] for item in items])
 
 
-def ordered_list(*items):
+def ordered_list(*items, attrs: dict = {}):
     """Wrap items in an ordered list element."""
-    ol = ["ol"]
-    ol.extend([["li", item] for item in items])
-    return ol
+    el = ["ol"]
+    if attrs:
+        el.append(attrs)
+    return wrap(el, [["li", item] for item in items])
 
 
 # TODO escape URI
-def images(src, alt=None):
+def image(src, alt=None, attrs: dict = {}):
     """Create an image element."""
     if alt:
-        return ["img", {"src": src, "alt": alt}]
+        return ["img", attrs | {"src": src, "alt": alt}]
     else:
-        return ["img", {"src": src}]
+        return ["img", attrs | {"src": src}]
+
+
+def wrap(el: list | tuple, children=[]):
+    """Wrap XML"""
+    output = el
+    output.extend(children)
+    return output
