@@ -169,3 +169,32 @@ def markup(*nodes, mode: str = "xml"):
     for node in nodes:
         output.extend(_convert_node(node, mode))
     return "".join(output)
+
+
+def from_dict(py_value, parent=None):
+    """Create a MU value from the Python value."""
+    typ = type(py_value)
+    if typ == int:
+        return py_value
+    elif py_value is None:
+        return ""
+    elif typ == float:
+        return py_value
+    elif typ == str:
+        return py_value
+    elif typ == bool:
+        if py_value:
+            return "true"
+        else:
+            return "false"
+    elif typ == list:
+        return [["li", from_dict(node)] for node in py_value]
+    elif (
+        typ == dict
+    ):  # when inside a named node we don't need the object element only at top level
+        mu = ["object"] if parent is None else []
+        for key in py_value:
+            mu.append([key, from_dict(py_value[key], parent=key)])
+        return mu
+    else:
+        print(f"Unhandled type: {type(py_value)}")
