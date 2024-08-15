@@ -3,6 +3,9 @@
 Represent HTML and XML using Python data structures. Based on the Clojure
 library Hiccup created by James Reeves.
 
+Used by [Collage](https://github.com/Collage-CMS/collage) CMS.
+
+
 ## Install
 
 ```
