@@ -158,7 +158,10 @@ def _convert_node(node, mode: str = "xml"):
                 yield y
     else:  # atomic value
         if node:
-            yield str(node)
+            if node_has_xml_method(node):
+                yield node.xml()
+            else:
+                yield str(node)
         else:
             pass
 

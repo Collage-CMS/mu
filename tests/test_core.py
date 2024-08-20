@@ -82,6 +82,15 @@ class TestHasAttributes:
         assert mu._has_attrs(["foo", {"a": 10, "b": 20}, "bla"]) is True
 
 
+class TestIsEmpty:
+
+    def test_is_empty(self):
+        assert mu._is_empty("foo") is False
+        assert mu._is_empty(["foo"]) is True
+        assert mu._is_empty(["foo", {}]) is True
+        assert mu._is_empty(["foo", (1, 2, 3)]) is False
+
+
 class TestAttributeFormatting:
 
     def test_escaping(self):

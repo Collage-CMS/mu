@@ -1,45 +1,46 @@
 from __future__ import annotations
 
-import mu as mu
+import mu
+
+
+class UL(object):
+
+    def __init__(self, *items):
+        self.items = items
+
+    def mu(self):
+        ol = ["ol"]
+        for x in self.items:
+            ol.append(["li", x])
+        return ol
+
+    def xml(self):
+        return mu.markup(self.mu())
+
+
+class TestMuContentWithNulls:
+
+    def test_nulls_in_content(self):
+        assert mu.markup(["xml", {}]) == "<xml/>"
+        assert mu.markup(["xml", None, None]) == "<xml/>"
+        assert mu.markup(["xml", None, 1, None, 2]) == "<xml>12</xml>"
+
+
+class TestMuContentList:
+
+    def test_simple_seq_with_list_content(self):
+        assert mu.markup(["foo", (1, 2, 3)]) == "<foo>123</foo>"
+        assert mu.markup(["foo", "a", "b"]) == "<foo>ab</foo>"
+        assert mu.markup(["foo", ("a", "b")]) == "<foo>ab</foo>"
+        assert mu.markup(["foo", ("a", ("b"))]) == "<foo>ab</foo>"
+        assert mu.markup(["foo", [(1), "b"]]) == "<foo>1b</foo>"
+        assert mu.markup(["foo", [("a"), ("b"), "c"]]) == "<foo><a>bc</a></foo>"
 
 
 class TestMuObjects:
 
-    def test_simple_seq_with_list_content(self):
-        assert mu.markup(["foo", (1, 2, 3)]) == "<foo>123</foo>"
-
-
-if __name__ == "__repl__":
-
-    import importlib
-
-    importlib.reload(mu)
-    mu.markup(["foo"], mode="html")
-
-    mu.markup(["foo", (1, 2, 3)])
-
-    mu.content(["foo", (1, 2, 3)])
-
-    isinstance([], list)
-    isinstance((), list)
-
-    isinstance([], tuple)
-    isinstance((), tuple)
-
-    list((1, 2, 3))
-    tuple([1, 2, 3])
-
-    mu._is_empty("foo")
-    mu._is_empty(["foo"])
-    mu._is_empty(["foo", {}])
-    mu._is_empty(["foo", (1, 2, 3)])
-
-    mu.markup(["foo", {"a": 10}, "a", "b"])
-    mu.markup(["foo", {"a": 10}, ("a", "b")])
-    mu.markup(["foo", {"a": 10}, ("a", ("b"))])
-    mu.markup(["foo", {"a": 10}, [(1), "b"]])
-    mu.markup(["foo", {"a": 10}, [("a"), ("b"), "c"]])
-
-    mu.markup(["xml", {}])  # "<xml/>"
-    mu.markup(["xml", None, None])  # "<xml></xml>"
-    mu.markup(["xml", None, 1, None, 2])  # "<xml></xml>"
+    def testMuObject(self):
+        assert (
+            mu.markup(["foo", UL(1, 2, 3)])
+            == "<foo><ol><li>1</li><li>2</li><li>3</li></ol></foo>"
+        )
