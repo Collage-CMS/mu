@@ -6,15 +6,10 @@
 #
 #    mu.markup(['foo', {'a': 10}, 'bar']) => <foo a="10">bar</foo>
 #
-# Conversion based on code by
-# https://github.com/nbessi/pyhiccup/blob/master/pyhiccup/core.py
-#
 from __future__ import annotations
 
 import mu.util as util
 
-TREE_TYPE = list
-SEQ_TYPE = tuple
 VOID_TAGS = {
     "area",
     "base",
@@ -36,7 +31,7 @@ VOID_TAGS = {
 
 
 def _is_element(value):
-    return isinstance(value, TREE_TYPE) and len(value) > 0 and isinstance(value[0], str)
+    return isinstance(value, list) and len(value) > 0 and isinstance(value[0], str)
 
 
 def _is_special_node(value):
