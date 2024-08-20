@@ -5,10 +5,24 @@ description = "Represent HTML and XML using Python data structures."
 authors = ["Marc van Grootel <marc.vangrootel@fontys.nl>"]
 readme = "README.md"
 
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.8.0"
+pytest = "^8.3.2"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-vv -ra -q"
+log_cli = true
+log_cli_level = "INFO"
+log_format = "%(asctime)s %(levelname)s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+minversion = "6.0"
+filterwarnings = "ignore"
+norecursedirs = "docs build"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 pyyaml = "^6.0.1"
-
 
 [build-system]
 requires = ["poetry-core"]

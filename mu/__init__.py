@@ -13,7 +13,8 @@ from __future__ import annotations
 
 import mu.util as util
 
-TREE_TYPE = (list, tuple)
+TREE_TYPE = list
+SEQ_TYPE = tuple
 VOID_TAGS = {
     "area",
     "base",
@@ -35,11 +36,20 @@ VOID_TAGS = {
 
 
 def _is_element(value):
-    return isinstance(value, list) and len(value) > 0 and isinstance(value[0], str)
+    return isinstance(value, TREE_TYPE) and len(value) > 0 and isinstance(value[0], str)
 
 
 def _is_special_node(value):
     return _is_element(value) and value[0][0] == "$"
+
+
+def _is_empty(node) -> bool:
+    if len(node) == 1:
+        return True
+    elif len(node) == 2 and isinstance(node[1], dict):
+        return True
+    else:
+        return False
 
 
 def _has_attrs(value):
@@ -73,7 +83,8 @@ def attrs(node):
 
 def content(node):
     if _is_element(node) and len(node) > 1:
-        return node[2:] if isinstance(node[1], dict) else node[1:]
+        children = node[2:] if isinstance(node[1], dict) else node[1:]
+        return [x for x in children if x is not None]
     else:
         return []
 
@@ -110,47 +121,46 @@ def _format_special_node(value):
         return ""
 
 
+def node_has_xml_method(node):
+    return hasattr(node, "xml") and callable(getattr(node, "xml"))
+
+
 def _convert_node(node, mode: str = "xml"):
     # optimization when we get a sequence of nodes
-    if isinstance(node[0], TREE_TYPE):
-        for sub_node in node:
-            for x in _convert_node(sub_node, mode):
-                yield x
-    if _is_special_node(node):
-        yield _format_special_node(node)
-    else:
-        node_tag = node[0]
-        rest = node[1:] if len(node) > 1 else []
-        node_attrs = ""
-        node_children = []
-        for element in rest:
-            if not element:
-                continue
-            elif isinstance(element, TREE_TYPE):
-                if isinstance(element[0], TREE_TYPE):
-                    node_children.extend(element)
-                else:
-                    node_children.append(element)
-            elif isinstance(element, dict):
-                node_attrs = _format_attrs(element, mode)
-            else:
-                node_children.append(element)
-        if node_children:
-            yield f"<{node_tag}{node_attrs}>"
-            for ext in node_children:
-                if isinstance(ext, TREE_TYPE):
-                    for x in _convert_node(ext, mode):
-                        yield x
-                else:
-                    yield util.escape_html(ext)
-            yield f"</{node_tag}>"
-        else:
+    if _is_element(node):
+        node_tag = tag(node)
+        node_attrs = _format_attrs(attrs(node))
+        node_content = content(node)
+        if _is_special_node(node):
+            yield _format_special_node(node)  # TODO: add mode
+        elif len(node_content) == 0:
             if node_tag in VOID_TAGS and mode in {"html", "xhtml"}:
                 yield f"<{node_tag}{node_attrs}{_end_tag(mode)}"
             elif mode in {"xml", "sgml"}:
                 yield f"<{node_tag}{node_attrs}{_end_tag(mode)}"
             else:
                 yield f"<{node_tag}{node_attrs}></{node_tag}>"
+        else:  # content to process
+            yield f"<{node_tag}{node_attrs}>"
+            for child in node_content:
+                if isinstance(child, tuple):
+                    for x in child:
+                        for y in _convert_node(x, mode):
+                            yield y
+                else:
+                    for x in _convert_node(child, mode):
+                        yield x
+            yield f"</{node_tag}>"
+    elif isinstance(node, list | tuple):
+        # a sequence, list would imply a malformed element
+        for x in node:
+            for y in _convert_node(x, mode):
+                yield y
+    else:  # atomic value
+        if node:
+            yield str(node)
+        else:
+            pass
 
 
 # mode: html, xhtml, xml, sgml (default xml)

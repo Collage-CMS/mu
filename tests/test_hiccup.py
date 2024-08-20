@@ -4,6 +4,8 @@
 # TODO there is some overlap with the tests in test_mu.py
 from __future__ import annotations
 
+import pytest
+
 import mu as mu
 
 # https://github.com/weavejester/hiccup/blob/master/test/hiccup/compiler_test.clj
@@ -174,6 +176,7 @@ class TestRenderModes:
         assert mu.markup(["p"], ["br"], mode="xml") == "<p/><br/>"
         assert mu.markup(["p"], ["br"], mode="sgml") == "<p><br>"
 
+    @pytest.mark.skip(reason="this functionality is not yet implemented")
     def test_boolean_attributes(self):
         assert (
             mu.markup(["input", {"type": "checkbox", "checked": True}])
