@@ -208,15 +208,11 @@ def _end_tag(mode):
 
 
 def _expand_node(node):
-    print("Expanding node:")
-    print(node)
-    print("---")
     if is_element(node):
         node_tag = tag(node)
         node_attrs = attrs(node)
         node_content = content(node)
         if _node_has_mu_method(node_tag):
-            print("Setting content and attrs: %s" % node_content)
             node_tag.set_attrs(node_attrs)
             node_tag.set_content(node_content)
             return node_tag.mu()
