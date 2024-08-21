@@ -184,7 +184,6 @@ class OL(mu.Node):
 ```
 
 - This class is defined as a subclass from the `mu.Node` class.
-- Its constructor takes an arbitrary number of item arguments.
 - The `mu` method builds an order list element and list item for
   each content item.
 - The `xml` method calls the `mu` method and renders it as XML
