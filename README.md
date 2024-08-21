@@ -68,6 +68,22 @@ mu.is_empty(el)         # does it have child nodes?
 mu.has_attrs(el)        # does it have attributes?
 ```
 
+### Render markup
+
+The `mu.markup` function may have a keyword argument that specifies the
+type of markup generated. Although XML, XHTML, HTML look very similar
+there are some slight differences mainly to how empty elements are
+rendered.
+
+```
+mu.markup(["img"], mode="xml")     # <img/>
+mu.markup(["img"], mode="xhtml")   # <img />
+mu.markup(["img"], mode="html")    # <img>
+mu.mkarup(["script"], mode="html") # <script></script>
+```
+
+Note that Mu tries to do the correct thing when the markup mode is HTML.
+
 ### Special nodes
 
 XML has a few syntactic constructs that you usually don't need.
@@ -226,5 +242,6 @@ initial content etc. etc.
 
 ## Related work
 
+- [SXML](https://en.wikipedia.org/wiki/SXML)
 - [weavejester/hiccup](https://github.com/weavejester/hiccup)
 - [nbessi/pyhiccup](https://github.com/nbessi/pyhiccup)
