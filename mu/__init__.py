@@ -32,7 +32,7 @@ VOID_TAGS = {
 }
 
 
-class Mu:
+class Node:
 
     def __init__(self):
         self._content = []
@@ -55,7 +55,7 @@ class Mu:
 
 def is_element(value):
     return (
-        isinstance(value, list) and len(value) > 0 and isinstance(value[0], (str, Mu))
+        isinstance(value, list) and len(value) > 0 and isinstance(value[0], (str, Node))
     )
 
 
@@ -150,7 +150,6 @@ def _node_has_mu_method(node):
 
 
 def _convert_node(node, mode: str = "xml"):
-    # optimization when we get a sequence of nodes
     if is_element(node):
         node_tag = tag(node)
         node_attrs = attrs(node)
@@ -163,7 +162,7 @@ def _convert_node(node, mode: str = "xml"):
             node_tag.set_content(node_content)
             yield node_tag.xml()
         elif is_special_node(node):
-            yield _format_special_node(node)  # TODO: add mode
+            yield _format_special_node(node)
         elif len(node_content) == 0:
             if node_tag in VOID_TAGS and mode in {"html", "xhtml"}:
                 yield f"<{node_tag}{node_attrs_xml}{_end_tag(mode)}"

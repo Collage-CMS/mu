@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import mu
-from mu import Mu
+from mu import Node
 
 
-class UL(Mu):
+class UL(Node):
 
     def __init__(self, *items):
         self._content = list(items)

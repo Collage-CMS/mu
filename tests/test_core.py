@@ -3,13 +3,13 @@ from __future__ import annotations
 import mu as mu
 import mu.json as jsn
 import mu.yaml as yml
-from mu import Mu
+from mu import Node
 
 # TODO Add functions to manipulate Mu structures.
 # TODO Add namespaces and generate well-formed XML (or auto-gen at top)
 
 
-class UL(Mu):
+class UL(Node):
 
     def __init__(self, *items):
         self._content = list(items)

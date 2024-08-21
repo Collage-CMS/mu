@@ -160,7 +160,7 @@ position then the attributes dict is passed to the object
 using its `set_attr` method, and the content nodes are passed
 using the `set_content` method.
 
-Object nodes have to be derived from the `mu.Mu` class and must
+Object nodes have to be derived from the `mu.Node` class and must
 implement two methods: `mu` and `xml`. Note that rendering
 markup only requires the latter but rendering XML is easier
 by using Mu itself (as this example shows).
@@ -168,7 +168,7 @@ by using Mu itself (as this example shows).
 As an example take the following custom class definition.
 
 ```
-class OL(mu.Mu):
+class OL(mu.Node):
 
     def mu(self):
         ol = ["ol"]
@@ -183,7 +183,7 @@ class OL(mu.Mu):
 
 ```
 
-- This class is defined as a subclass from the `mu.Mu` class.
+- This class is defined as a subclass from the `mu.Node` class.
 - Its constructor takes an arbitrary number of item arguments.
 - The `mu` method builds an order list element and list item for
   each content item.
