@@ -8,6 +8,8 @@
 #
 from __future__ import annotations
 
+from abc import abstractmethod
+
 import mu.util as util
 
 VOID_TAGS = {
@@ -30,12 +32,35 @@ VOID_TAGS = {
 }
 
 
+class Mu:
+
+    def __init__(self):
+        self._content = []
+        self._attrs = {}
+
+    def set_attrs(self, attrs: dict = {}):
+        self._attrs = attrs
+
+    def set_content(self, content):
+        self._content.extend(content)
+
+    @abstractmethod
+    def mu(self):
+        pass
+
+    @abstractmethod
+    def xml(self):
+        pass
+
+
 def _is_element(value):
-    return isinstance(value, list) and len(value) > 0 and isinstance(value[0], str)
+    return (
+        isinstance(value, list) and len(value) > 0 and isinstance(value[0], (str, Mu))
+    )
 
 
 def _is_special_node(value):
-    return _is_element(value) and value[0][0] == "$"
+    return _is_element(value) and isinstance(value[0], str) and value[0][0] == "$"
 
 
 def _is_empty(node) -> bool:
@@ -76,7 +101,7 @@ def attrs(node):
         return None
 
 
-def content(node):
+def content(node) -> list:
     if _is_element(node) and len(node) > 1:
         children = node[2:] if isinstance(node[1], dict) else node[1:]
         return [x for x in children if x is not None]
@@ -94,7 +119,7 @@ def _format_attrs(attributes, mode: str = "xml"):
                 output.append(f" {name}")
             elif value:
                 output.append(f' {name}="{name}"')
-        elif isinstance(value, list | tuple):
+        elif isinstance(value, (list, tuple)):
             output.append(
                 f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"'
             )
@@ -120,23 +145,34 @@ def node_has_xml_method(node):
     return hasattr(node, "xml") and callable(getattr(node, "xml"))
 
 
+def node_has_mu_method(node):
+    return hasattr(node, "xml") and callable(getattr(node, "xml"))
+
+
 def _convert_node(node, mode: str = "xml"):
     # optimization when we get a sequence of nodes
     if _is_element(node):
         node_tag = tag(node)
-        node_attrs = _format_attrs(attrs(node))
+        node_attrs = attrs(node)
+        node_attrs_xml = _format_attrs(node_attrs)
         node_content = content(node)
-        if _is_special_node(node):
+        if node_has_xml_method(node_tag):
+            # active element, receives attributes and content
+            # and then generates xml
+            node_tag.set_attrs(node_attrs)
+            node_tag.set_content(node_content)
+            yield node_tag.xml()
+        elif _is_special_node(node):
             yield _format_special_node(node)  # TODO: add mode
         elif len(node_content) == 0:
             if node_tag in VOID_TAGS and mode in {"html", "xhtml"}:
-                yield f"<{node_tag}{node_attrs}{_end_tag(mode)}"
+                yield f"<{node_tag}{node_attrs_xml}{_end_tag(mode)}"
             elif mode in {"xml", "sgml"}:
-                yield f"<{node_tag}{node_attrs}{_end_tag(mode)}"
+                yield f"<{node_tag}{node_attrs_xml}{_end_tag(mode)}"
             else:
-                yield f"<{node_tag}{node_attrs}></{node_tag}>"
+                yield f"<{node_tag}{node_attrs_xml}></{node_tag}>"
         else:  # content to process
-            yield f"<{node_tag}{node_attrs}>"
+            yield f"<{node_tag}{node_attrs_xml}>"
             for child in node_content:
                 if isinstance(child, tuple):
                     for x in child:
@@ -169,6 +205,41 @@ def _end_tag(mode):
         return " />"
     else:
         return ">"
+
+
+def _expand_node(node):
+    print("Expanding node:")
+    print(node)
+    print("---")
+    if _is_element(node):
+        node_tag = tag(node)
+        node_attrs = attrs(node)
+        node_content = content(node)
+        if node_has_mu_method(node_tag):
+            print("Setting content and attrs: %s" % node_content)
+            node_tag.set_attrs(node_attrs)
+            node_tag.set_content(node_content)
+            return node_tag.mu()
+        else:
+            mu = [node_tag, node_attrs]
+            mu.extend([_expand_node(child) for child in node_content])
+            return mu
+    elif isinstance(node, list | tuple):
+        mu = []
+        for child in node:
+            if child is not None:
+                mu.append(_expand_node(child))
+        return mu
+    else:
+        if node_has_mu_method(node):
+            return node.mu()
+        else:
+            return node
+
+
+def expand(nodes):
+    """Expand a Mu datastructure (invoking all Mu objects mu() method)."""
+    return _expand_node(nodes)
 
 
 def markup(*nodes, mode: str = "xml"):

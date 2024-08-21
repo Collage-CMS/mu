@@ -3,10 +3,28 @@ from __future__ import annotations
 import mu as mu
 import mu.json as jsn
 import mu.yaml as yml
+from mu import Mu
 
-# TODO Needs much more checking on valid QNames, illegal constructs etc.
 # TODO Add functions to manipulate Mu structures.
 # TODO Add namespaces and generate well-formed XML (or auto-gen at top)
+
+
+class UL(Mu):
+
+    def __init__(self, *items):
+        self._content = list(items)
+        self._attrs = {}
+
+    def mu(self):
+        ol = ["ol"]
+        if len(self._attrs) > 0:
+            ol.append(self._attrs)
+        for item in self._content:
+            ol.append(["li", item])
+        return ol
+
+    def xml(self):
+        return mu.markup(self.mu())
 
 
 class TestAccessors:
@@ -49,6 +67,9 @@ class TestIsElement:
         assert mu._is_element(["foo", ["bar"]]) is True
         assert mu._is_element(["foo", "bla"]) is True
         assert mu._is_element(["foo", {}, "bla"]) is True
+
+    def test_is_obj_instance_element(self):
+        assert mu._is_element([UL(), 1, 2, 3]) is True
 
 
 class TestIsSpecialNode:
@@ -238,3 +259,27 @@ class TestTagFormatting:
         assert mu.markup(["img"], mode="xhtml") == "<img />"
         assert mu.markup(["img"], mode="html") == "<img>"
         assert mu.markup(["img"], mode="sgml") == "<img>"
+
+
+class TestExpand:
+
+    def test_expand_mu(self):
+        # mu without any extra stuff should just reproduce the
+        # same structure with None removed.
+        assert mu.expand([]) == []
+        assert mu.expand([1, 2, 3]) == [1, 2, 3]
+        assert mu.expand([1, None, 2, None, 3]) == [1, 2, 3]
+        assert mu.expand([(1), 2, (3)]) == [1, 2, 3]
+        assert mu.expand(["foo", {}, "bar"]) == ["foo", {}, "bar"]
+
+    def test_expand_mu_with_objects(self):
+        assert mu.expand([UL()]) == ["ol"]
+        assert mu.expand(UL()) == ["ol"]
+        assert mu.expand([UL(), 1, 2, 3]) == ["ol", ["li", 1], ["li", 2], ["li", 3]]
+        assert mu.expand([UL(), {"class": ("foo", "bar")}, 1, 2, 3]) == [
+            "ol",
+            {"class": ("foo", "bar")},
+            ["li", 1],
+            ["li", 2],
+            ["li", 3],
+        ]

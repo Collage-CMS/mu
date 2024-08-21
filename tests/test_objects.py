@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import mu
+from mu import Mu
 
 
-class UL(object):
+class UL(Mu):
 
     def __init__(self, *items):
-        self.items = items
+        self._content = list(items)
+        self._attrs = {}
 
     def mu(self):
         ol = ["ol"]
-        for x in self.items:
-            ol.append(["li", x])
+        if len(self._attrs) > 0:
+            ol.append(self._attrs)
+        for item in self._content:
+            ol.append(["li", item])
         return ol
 
     def xml(self):
@@ -43,4 +47,21 @@ class TestMuObjects:
         assert (
             mu.markup(["foo", UL(1, 2, 3)])
             == "<foo><ol><li>1</li><li>2</li><li>3</li></ol></foo>"
+        )
+
+    def testMuObjectElement(self):
+        assert (
+            mu.markup(["foo", [UL(), 1, 2, 3]])
+            == "<foo><ol><li>1</li><li>2</li><li>3</li></ol></foo>"
+        )
+        assert (
+            mu.markup(["foo", [UL(), (1, 2, 3)]]) == "<foo><ol><li>123</li></ol></foo>"
+        )
+        assert (
+            mu.markup(["foo", [UL(), {}, (1, 2, 3)]])
+            == "<foo><ol><li>123</li></ol></foo>"
+        )
+        assert (
+            mu.markup(["foo", [UL(), {"class": ("foo", "bar")}, 1, 2]])
+            == '<foo><ol class="foo bar"><li>1</li><li>2</li></ol></foo>'
         )
