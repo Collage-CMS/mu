@@ -55,61 +55,61 @@ class TestAccessors:
 class TestIsElement:
 
     def test_is_not_element(self):
-        assert mu._is_element([]) is False
-        assert mu._is_element(0) is False
-        assert mu._is_element(None) is False
-        assert mu._is_element({}) is False
-        assert mu._is_element("foo") is False
-        assert mu._is_element(True) is False
+        assert mu.is_element([]) is False
+        assert mu.is_element(0) is False
+        assert mu.is_element(None) is False
+        assert mu.is_element({}) is False
+        assert mu.is_element("foo") is False
+        assert mu.is_element(True) is False
 
     def test_is_element(self):
-        assert mu._is_element(["foo"]) is True
-        assert mu._is_element(["foo", ["bar"]]) is True
-        assert mu._is_element(["foo", "bla"]) is True
-        assert mu._is_element(["foo", {}, "bla"]) is True
+        assert mu.is_element(["foo"]) is True
+        assert mu.is_element(["foo", ["bar"]]) is True
+        assert mu.is_element(["foo", "bla"]) is True
+        assert mu.is_element(["foo", {}, "bla"]) is True
 
     def test_is_obj_instance_element(self):
-        assert mu._is_element([UL(), 1, 2, 3]) is True
+        assert mu.is_element([UL(), 1, 2, 3]) is True
 
 
 class TestIsSpecialNode:
 
     def test_is_not_special(self):
-        assert mu._is_special_node(None) is False
-        assert mu._is_special_node("foo") is False
-        assert mu._is_special_node([]) is False
-        assert mu._is_special_node(["foo"]) is False
+        assert mu.is_special_node(None) is False
+        assert mu.is_special_node("foo") is False
+        assert mu.is_special_node([]) is False
+        assert mu.is_special_node(["foo"]) is False
 
     def test_is_special(self):
-        assert mu._is_special_node(["$comment"]) is True
-        assert mu._is_special_node(["$cdata"]) is True
-        assert mu._is_special_node(["$pi"]) is True
-        assert mu._is_special_node(["$foo"]) is True
+        assert mu.is_special_node(["$comment"]) is True
+        assert mu.is_special_node(["$cdata"]) is True
+        assert mu.is_special_node(["$pi"]) is True
+        assert mu.is_special_node(["$foo"]) is True
 
 
 class TestHasAttributes:
 
     # FIXME URL values should be handled differently
     def test_has_not(self):
-        assert mu._has_attrs(None) is False
-        assert mu._has_attrs("foo") is False
-        assert mu._has_attrs([]) is False
-        assert mu._has_attrs(["foo"]) is False
-        assert mu._has_attrs(["foo", {}]) is False
-        assert mu._has_attrs(["foo", "bla", {"a": 10}]) is False
+        assert mu.has_attrs(None) is False
+        assert mu.has_attrs("foo") is False
+        assert mu.has_attrs([]) is False
+        assert mu.has_attrs(["foo"]) is False
+        assert mu.has_attrs(["foo", {}]) is False
+        assert mu.has_attrs(["foo", "bla", {"a": 10}]) is False
 
     def test_has(self):
-        assert mu._has_attrs(["foo", {"a": 10, "b": 20}]) is True
-        assert mu._has_attrs(["foo", {"a": 10, "b": 20}, "bla"]) is True
+        assert mu.has_attrs(["foo", {"a": 10, "b": 20}]) is True
+        assert mu.has_attrs(["foo", {"a": 10, "b": 20}, "bla"]) is True
 
 
 class TestIsEmpty:
 
     def test_is_empty(self):
-        assert mu._is_empty("foo") is False
-        assert mu._is_empty(["foo"]) is True
-        assert mu._is_empty(["foo", {}]) is True
-        assert mu._is_empty(["foo", (1, 2, 3)]) is False
+        assert mu.is_empty("foo") is False
+        assert mu.is_empty(["foo"]) is True
+        assert mu.is_empty(["foo", {}]) is True
+        assert mu.is_empty(["foo", (1, 2, 3)]) is False
 
 
 class TestAttributeFormatting:

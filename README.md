@@ -1,9 +1,8 @@
 # Mu
 
-Represent HTML and XML using Python data structures. Based on the Clojure
-library Hiccup created by James Reeves.
-
-Used by [Collage](https://github.com/Collage-CMS/collage) CMS.
+Represent HTML and XML using Python data structures. This does
+for Python what the [Hiccup](https://github.com/weavejester/hiccup)
+library by James Reeves did for the Clojure language.
 
 
 ## Install
@@ -12,7 +11,11 @@ Used by [Collage](https://github.com/Collage-CMS/collage) CMS.
 pip install mu
 ```
 
+
 ## Usage
+
+To render a Mu data structure as markup (XML, XHTML or HTML) use the
+`mu.markup` function.
 
 ```
 import mu
@@ -20,19 +23,205 @@ import mu
 mu.markup(["p", "Hello, ", ["b", "World"], "!"])
 ```
 
-Returns the string `<p>Hello, <b>World</b>!`
+Returns the string `<p>Hello, <b>World</b>!</p>`
+
 
 ## Documentation
 
-### Special Nodes
+In XML or related markup (XHTML, HTML, SGML) a data structure is made
+up of various node types such as element, attribute, or text nodes.
 
-Every `tag` that starts with `$` is a special node. But special nodes other
-than `$comment`, `$pi`, and `$cdata` will be ignored.
+However, writing markup in code is tedious and error-prone. Mu allows
+creating well-formed markup with Python code and basic Python data
+structures.
 
-### Elements
+### Element nodes
 
-### Pages
+An element node is made up of a tag, an optional attribute dictionary
+and zero or more content nodes which themselves can be made up of other
+elements.
 
+```
+el = ["p", {"id": 1}, "this is a paragraph."]
+```
+
+You can access the parts of this element node using accessor functions.
+
+```
+mu.tag(el)       # "p"
+mu.attrs(el)     # {"id": 1}
+mu.content(el)   # ["this is a paragraph."]
+```
+
+To render this as XML markup:
+
+```
+mu.markup(el)    # <p id="1">this is a paragraph.</p>
+```
+
+Use the provided predicate functions to inspect a node.
+
+```
+mu.is_element(el)       # is this a valid element node?
+mu.is_special_node(el)  # is this a special node? (see below)
+mu.is_empty(el)         # does it have child nodes?
+mu.has_attrs(el)        # does it have attributes?
+```
+
+### Special nodes
+
+XML has a few syntactic constructs that you usually don't need.
+But if you do need them, you can represent them in Mu as follows.
+
+```
+["$comment", "this is a comment"]
+["$pi", "foo", "bar"]
+["$cdata", "<foo>"]
+```
+
+These will be rendered as:
+
+```
+<!-- this is a comment -->
+<?foo bar?>
+<![CDATA[<foo>]]>
+```
+
+Every `tag` that starts with `$` is considered a special node.
+Special nodes with a tag different from `$comment`, `$pi`, or `$cdata`
+will be dropped when generating markup.
+
+A CDATA node will not escape it's content as is usual in XML and HTML.
+
+
+### Namespaces
+
+Mu does not enforce XML rules. You can use namespaces but you have
+to provide the namespace declarations as is expected by
+[XML Namespaces](https://www.w3.org/TR/xml-names).
+
+```
+["svg", {"xmlns": "http://www.w3.org/2000/svg"},
+  ["rect", {"width": 200, "height": 100, "x": 10, "y": 10}]
+]
+```
+
+```
+<svg xmlns="http://www.w3.org/2000/svg">
+  <rect widht="200" height="100" x="10" y="10"/>
+</svg>
+```
+
+The following uses explicit namespace prefixes and is semantically
+identical to the previous example.
+
+```
+["svg:svg", {"xmlns:svg": "http://www.w3.org/2000/svg"},
+  ["svg:rect", {"width": 200, "height": 100, "x": 10, "y": 10}]
+]
+```
+
+```
+<svg:svg xmlns:svg="http://www.w3.org/2000/svg">
+  <svg:rect widht="200" height="100" x="10" y="10"/>
+</svg:svg>
+```
+
+### Object nodes
+
+Object nodes may appear in two positions inside a Mu data
+structure.
+
+1) In the content position of an element node (e.g.
+   `["p", {"class": "x"}, obj]`) or,
+2) In the tag position of an element node (e.g.
+   `[obj, {"class": "x"}, "content"]`)
+
+In both cases the object's `xml` method is called when
+rendered into markup. The `xml` method is always called without
+any arguments. However, when the object appears in the tag
+position then the attributes dict is passed to the object
+using its `set_attr` method, and the content nodes are passed
+using the `set_content` method.
+
+Object nodes have to be derived from the `mu.Mu` class and must
+implement two methods: `mu` and `xml`. Note that rendering
+markup only requires the latter but rendering XML is easier
+by using Mu itself (as this example shows).
+
+As an example take the following custom class definition.
+
+```
+class OL(mu.Mu):
+
+    def mu(self):
+        ol = ["ol"]
+        if len(self._attrs) > 0:
+            ol.append(self._attrs)
+        for item in self._content:
+            ol.append(["li", item])
+        return ol
+
+    def xml(self):
+        return mu.markup(self.mu())
+
+```
+
+- This class is defined as a subclass from the `mu.Mu` class.
+- Its constructor takes an arbitrary number of item arguments.
+- The `mu` method builds an order list element and list item for
+  each content item.
+- The `xml` method calls the `mu` method and renders it as XML
+  markup.
+
+Now let's use this class in a Mu data structure.
+
+```
+mu.markup(["div", OL(), "foo"])
+```
+
+```
+<div><ol/>foo</div>
+```
+
+Here the `OL()` object is in the content position so no information is
+passed to it to render a list. This may be useful but in this case not
+what we want.
+
+To produce a list the object must be in the tag position of an element
+node.
+
+```
+["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]]
+```
+
+```
+<div>
+  <ol class="foo bar">
+    <li>item 1</li>
+    <li>item 2</li>
+    <li>item 3</li>
+  </ol>
+</div>
+```
+
+In some cases you may want to use the `mu.expand` function to only expand
+such object nodes to a straightforward data structure.
+
+```
+mu.expand([OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"])
+```
+
+```
+["ol", {"class": ("foo", "bar")},
+  ["li", "item 1"],
+  ["li", "item 2"],
+  ["li", "item 3"]]
+```
+
+Of course, you can build many other types of objects using this object node
+concept. You can provide an `__init__` method to populate the object with
+initial content etc. etc.
 
 
 ## Related work

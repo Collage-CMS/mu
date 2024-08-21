@@ -53,17 +53,17 @@ class Mu:
         pass
 
 
-def _is_element(value):
+def is_element(value):
     return (
         isinstance(value, list) and len(value) > 0 and isinstance(value[0], (str, Mu))
     )
 
 
-def _is_special_node(value):
-    return _is_element(value) and isinstance(value[0], str) and value[0][0] == "$"
+def is_special_node(value):
+    return is_element(value) and isinstance(value[0], str) and value[0][0] == "$"
 
 
-def _is_empty(node) -> bool:
+def is_empty(node) -> bool:
     if len(node) == 1:
         return True
     elif len(node) == 2 and isinstance(node[1], dict):
@@ -72,9 +72,9 @@ def _is_empty(node) -> bool:
         return False
 
 
-def _has_attrs(value):
+def has_attrs(value):
     return (
-        _is_element(value)
+        is_element(value)
         and len(value) > 1
         and isinstance(value[1], dict)
         and len(value[1]) > 0
@@ -86,14 +86,14 @@ def _has_attrs(value):
 
 def tag(node):
     """The tag (node name) of the element or None."""
-    return node[0] if _is_element(node) else None
+    return node[0] if is_element(node) else None
 
 
 def attrs(node):
     """Dict with all attributes of the element.
     None if the node is not an element."""
-    if _is_element(node):
-        if _has_attrs(node):
+    if is_element(node):
+        if has_attrs(node):
             return node[1]
         else:
             return {}
@@ -102,7 +102,7 @@ def attrs(node):
 
 
 def content(node) -> list:
-    if _is_element(node) and len(node) > 1:
+    if is_element(node) and len(node) > 1:
         children = node[2:] if isinstance(node[1], dict) else node[1:]
         return [x for x in children if x is not None]
     else:
@@ -141,28 +141,28 @@ def _format_special_node(value):
         return ""
 
 
-def node_has_xml_method(node):
+def _node_has_xml_method(node):
     return hasattr(node, "xml") and callable(getattr(node, "xml"))
 
 
-def node_has_mu_method(node):
+def _node_has_mu_method(node):
     return hasattr(node, "xml") and callable(getattr(node, "xml"))
 
 
 def _convert_node(node, mode: str = "xml"):
     # optimization when we get a sequence of nodes
-    if _is_element(node):
+    if is_element(node):
         node_tag = tag(node)
         node_attrs = attrs(node)
         node_attrs_xml = _format_attrs(node_attrs)
         node_content = content(node)
-        if node_has_xml_method(node_tag):
+        if _node_has_xml_method(node_tag):
             # active element, receives attributes and content
             # and then generates xml
             node_tag.set_attrs(node_attrs)
             node_tag.set_content(node_content)
             yield node_tag.xml()
-        elif _is_special_node(node):
+        elif is_special_node(node):
             yield _format_special_node(node)  # TODO: add mode
         elif len(node_content) == 0:
             if node_tag in VOID_TAGS and mode in {"html", "xhtml"}:
@@ -189,7 +189,7 @@ def _convert_node(node, mode: str = "xml"):
                 yield y
     else:  # atomic value
         if node:
-            if node_has_xml_method(node):
+            if _node_has_xml_method(node):
                 yield node.xml()
             else:
                 yield str(node)
@@ -211,11 +211,11 @@ def _expand_node(node):
     print("Expanding node:")
     print(node)
     print("---")
-    if _is_element(node):
+    if is_element(node):
         node_tag = tag(node)
         node_attrs = attrs(node)
         node_content = content(node)
-        if node_has_mu_method(node_tag):
+        if _node_has_mu_method(node_tag):
             print("Setting content and attrs: %s" % node_content)
             node_tag.set_attrs(node_attrs)
             node_tag.set_content(node_content)
@@ -231,7 +231,7 @@ def _expand_node(node):
                 mu.append(_expand_node(child))
         return mu
     else:
-        if node_has_mu_method(node):
+        if _node_has_mu_method(node):
             return node.mu()
         else:
             return node
@@ -248,6 +248,9 @@ def markup(*nodes, mode: str = "xml"):
     for node in nodes:
         output.extend(_convert_node(node, mode))
     return "".join(output)
+
+
+# experimental
 
 
 def from_dict(py_value, parent=None):
