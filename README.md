@@ -79,7 +79,7 @@ rendered.
 mu.markup(["img"], mode="xml")     # <img/>
 mu.markup(["img"], mode="xhtml")   # <img />
 mu.markup(["img"], mode="html")    # <img>
-mu.mkarup(["script"], mode="html") # <script></script>
+mu.markup(["script"], mode="html") # <script></script>
 ```
 
 Note that Mu tries to do the correct thing when the markup mode is HTML.
