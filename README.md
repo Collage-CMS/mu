@@ -124,7 +124,7 @@ to provide the namespace declarations as is expected by
 
 ```
 <svg xmlns="http://www.w3.org/2000/svg">
-  <rect widht="200" height="100" x="10" y="10"/>
+  <rect width="200" height="100" x="10" y="10"/>
 </svg>
 ```
 

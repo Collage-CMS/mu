@@ -219,7 +219,7 @@ def _expand_node(node):
             mu = [node_tag, node_attrs]
             mu.extend([_expand_node(child) for child in node_content])
             return mu
-    elif isinstance(node, list | tuple):
+    elif isinstance(node, (list, tuple)):
         mu = []
         for child in node:
             if child is not None:
