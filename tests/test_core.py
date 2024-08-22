@@ -85,6 +85,7 @@ class TestIsSpecialNode:
         assert mu.is_special_node(["$cdata"]) is True
         assert mu.is_special_node(["$pi"]) is True
         assert mu.is_special_node(["$foo"]) is True
+        assert mu.is_special_node(["$raw"]) is True
 
 
 class TestHasAttributes:

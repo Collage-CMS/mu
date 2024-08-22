@@ -93,6 +93,7 @@ But if you do need them, you can represent them in Mu as follows.
 ["$comment", "this is a comment"]
 ["$pi", "foo", "bar"]
 ["$cdata", "<foo>"]
+["$raw|. "<foo/>"]
 ```
 
 These will be rendered as:
@@ -100,7 +101,8 @@ These will be rendered as:
 ```
 <!-- this is a comment -->
 <?foo bar?>
-<![CDATA[<foo>]]>
+&lt;foo&gt;
+<foo/>
 ```
 
 Every `tag` that starts with `$` is considered a special node.

@@ -12,7 +12,7 @@
         "-p",
         "test_*.py"
     ],
-    "black-formatter.args": [ "--config", "pyproject.toml"],
+    "black-formatter.args": [ "--line-length", 88, "--target-version", "py310"],
     "flake8.args": [ "--config", "pyproject.toml" ],
     "yaml.customTags": ["!dox/context mapping", "!dox mapping", "!dox/html5 mapping", "!dox/xhtml mapping", "!dox/xml mapping", "!attrs mapping"]
 }
