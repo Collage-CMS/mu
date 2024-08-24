@@ -8,8 +8,6 @@
 #
 from __future__ import annotations
 
-from abc import abstractmethod
-
 import mu.util as util
 
 VOID_TAGS = {
@@ -34,21 +32,19 @@ VOID_TAGS = {
 
 class Node:
 
-    def __init__(self):
-        self._content = []
-        self._attrs = {}
+    def __init__(self, node, **attrs):
+        self._content = node
+        self._attrs = attrs
 
     def set_attrs(self, attrs: dict = {}):
         self._attrs = attrs
 
-    def set_content(self, content):
-        self._content.extend(content)
+    def set_content(self, node):
+        self._content = node
 
-    @abstractmethod
     def mu(self):
         pass
 
-    @abstractmethod
     def xml(self):
         pass
 
@@ -212,11 +208,14 @@ def _expand_node(node):
         node_attrs = attrs(node)
         node_content = content(node)
         if _node_has_mu_method(node_tag):
-            node_tag.set_attrs(node_attrs)
+            if len(node_attrs) > 0:
+                node_tag.set_attrs(node_attrs)
             node_tag.set_content(node_content)
             return node_tag.mu()
         else:
-            mu = [node_tag, node_attrs]
+            mu = [node_tag]
+            if len(node_attrs) > 0:
+                mu.append(node_attrs)
             mu.extend([_expand_node(child) for child in node_content])
             return mu
     elif isinstance(node, (list, tuple)):

@@ -271,7 +271,7 @@ class TestExpand:
         assert mu.expand([1, 2, 3]) == [1, 2, 3]
         assert mu.expand([1, None, 2, None, 3]) == [1, 2, 3]
         assert mu.expand([(1), 2, (3)]) == [1, 2, 3]
-        assert mu.expand(["foo", {}, "bar"]) == ["foo", {}, "bar"]
+        assert mu.expand(["foo", {}, "bar"]) == ["foo", "bar"]
 
     def test_expand_mu_with_objects(self):
         assert mu.expand([UL()]) == ["ol"]
