@@ -7,7 +7,7 @@ library by James Reeves did for the Clojure language.
 
 ## Install
 
-```
+```shell
 pip install mu
 ```
 
@@ -17,7 +17,7 @@ pip install mu
 To render a Mu data structure as markup (XML, XHTML or HTML) use the
 `mu.markup` function.
 
-```
+```python
 import mu
 
 mu.markup(["p", "Hello, ", ["b", "World"], "!"])
@@ -41,13 +41,13 @@ An element node is made up of a tag, an optional attribute dictionary
 and zero or more content nodes which themselves can be made up of other
 elements.
 
-```
+```python
 el = ["p", {"id": 1}, "this is a paragraph."]
 ```
 
 You can access the parts of this element node using accessor functions.
 
-```
+```python
 mu.tag(el)       # "p"
 mu.attrs(el)     # {"id": 1}
 mu.content(el)   # ["this is a paragraph."]
@@ -55,13 +55,13 @@ mu.content(el)   # ["this is a paragraph."]
 
 To render this as XML markup:
 
-```
+```python
 mu.markup(el)    # <p id="1">this is a paragraph.</p>
 ```
 
 Use the provided predicate functions to inspect a node.
 
-```
+```python
 mu.is_element(el)       # is this a valid element node?
 mu.is_special_node(el)  # is this a special node? (see below)
 mu.is_empty(el)         # does it have child nodes?
@@ -75,7 +75,7 @@ type of markup generated. Although XML, XHTML, HTML look very similar
 there are some slight differences mainly to how empty elements are
 rendered.
 
-```
+```python
 mu.markup(["img"], mode="xml")     # <img/>
 mu.markup(["img"], mode="xhtml")   # <img />
 mu.markup(["img"], mode="html")    # <img>
@@ -89,7 +89,7 @@ Note that Mu tries to do the correct thing when the markup mode is HTML.
 XML has a few syntactic constructs that you usually don't need.
 But if you do need them, you can represent them in Mu as follows.
 
-```
+```python
 ["$comment", "this is a comment"]
 ["$pi", "foo", "bar"]
 ["$cdata", "<foo>"]
@@ -98,7 +98,7 @@ But if you do need them, you can represent them in Mu as follows.
 
 These will be rendered as:
 
-```
+```xml
 <!-- this is a comment -->
 <?foo bar?>
 &lt;foo&gt;
@@ -118,13 +118,13 @@ Mu does not enforce XML rules. You can use namespaces but you have
 to provide the namespace declarations as is expected by
 [XML Namespaces](https://www.w3.org/TR/xml-names).
 
-```
+```python
 ["svg", {"xmlns": "http://www.w3.org/2000/svg"},
   ["rect", {"width": 200, "height": 100, "x": 10, "y": 10}]
 ]
 ```
 
-```
+```xml
 <svg xmlns="http://www.w3.org/2000/svg">
   <rect width="200" height="100" x="10" y="10"/>
 </svg>
@@ -133,13 +133,13 @@ to provide the namespace declarations as is expected by
 The following uses explicit namespace prefixes and is semantically
 identical to the previous example.
 
-```
+```python
 ["svg:svg", {"xmlns:svg": "http://www.w3.org/2000/svg"},
   ["svg:rect", {"width": 200, "height": 100, "x": 10, "y": 10}]
 ]
 ```
 
-```
+```xml
 <svg:svg xmlns:svg="http://www.w3.org/2000/svg">
   <svg:rect widht="200" height="100" x="10" y="10"/>
 </svg:svg>
@@ -169,7 +169,7 @@ by using Mu itself (as this example shows).
 
 As an example take the following custom class definition.
 
-```
+```python
 class OL(mu.Node):
 
     def mu(self):
@@ -182,7 +182,6 @@ class OL(mu.Node):
 
     def xml(self):
         return mu.markup(self.mu())
-
 ```
 
 - This class is defined as a subclass from the `mu.Node` class.
@@ -193,11 +192,11 @@ class OL(mu.Node):
 
 Now let's use this class in a Mu data structure.
 
-```
+```python
 mu.markup(["div", OL(), "foo"])
 ```
 
-```
+```xml
 <div><ol/>foo</div>
 ```
 
@@ -208,11 +207,11 @@ what we want.
 To produce a list the object must be in the tag position of an element
 node.
 
-```
+```python
 ["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]]
 ```
 
-```
+```xml
 <div>
   <ol class="foo bar">
     <li>item 1</li>
@@ -225,11 +224,11 @@ node.
 In some cases you may want to use the `mu.expand` function to only expand
 such object nodes to a straightforward data structure.
 
-```
+```python
 mu.expand([OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"])
 ```
 
-```
+```python
 ["ol", {"class": ("foo", "bar")},
   ["li", "item 1"],
   ["li", "item 2"],
