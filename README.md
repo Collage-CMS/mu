@@ -191,14 +191,15 @@ To produce a list the object must be in the tag position of an element node.
 In some cases you may want to use the `mu.expand` function to only expand such object nodes to a straightforward data structure.
 
 ```python
-mu.expand([OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"])
+mu.expand(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 ```
 
 ```python
-["ol", {"class": ("foo", "bar")},
-  ["li", "item 1"],
-  ["li", "item 2"],
-  ["li", "item 3"]]
+["div"
+  ["ol", {"class": ("foo", "bar")},
+    ["li", "item 1"],
+    ["li", "item 2"],
+    ["li", "item 3"]]]
 ```
 
 Of course, you can build many other types of objects using this object node concept. You can provide an `__init__` method to populate the object with initial content etc. etc.
