@@ -93,7 +93,7 @@ But if you do need them, you can represent them in Mu as follows.
 ["$comment", "this is a comment"]
 ["$pi", "foo", "bar"]
 ["$cdata", "<foo>"]
-["$raw|. "<foo/>"]
+["$raw", "<foo/>"]
 ```
 
 These will be rendered as:
