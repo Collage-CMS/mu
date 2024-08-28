@@ -137,7 +137,7 @@ Object nodes may appear in two positions inside a Mu data structure.
 
 In both cases the object's `xml` method is called when rendered into markup. The `xml` method is always called without any arguments. However, when the object appears in the tag position then the attributes dict is passed to the object using its `set_attr` method, and the content nodes are passed using the `set_content` method.
 
-Object nodes have to be derived from the `mu.Node` class and must implement two methods: `mu` and `xml`. Note that rendering markup only requires the latter but rendering XML is easier by using Mu itself (as this example shows).
+Object nodes have to be derived from the `mu.Node` class and must implement two methods: `mu` and `xml`. The `markup` function will call the object's `xml` method. The `expand` function will call the object's `mu` method.
 
 As an example take the following custom class definition.
 
