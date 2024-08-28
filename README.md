@@ -1,8 +1,6 @@
 # Mu
 
-Represent HTML and XML using Python data structures. This does
-for Python what the [Hiccup](https://github.com/weavejester/hiccup)
-library by James Reeves did for the Clojure language.
+Represent HTML and XML using Python data structures. This does for Python what the [Hiccup](https://github.com/weavejester/hiccup) library by James Reeves did for the Clojure language.
 
 
 ## Install
@@ -14,8 +12,7 @@ pip install mu
 
 ## Usage
 
-To render a Mu data structure as markup (XML, XHTML or HTML) use the
-`mu.markup` function.
+To render a Mu data structure as markup (XML, XHTML or HTML) use the `mu.markup` function.
 
 ```python
 import mu
@@ -28,18 +25,13 @@ Returns the string `<p>Hello, <b>World</b>!</p>`
 
 ## Documentation
 
-In XML or related markup (XHTML, HTML, SGML) a data structure is made
-up of various node types such as element, attribute, or text nodes.
+In XML or related markup (XHTML, HTML, SGML) a data structure is made up of various node types such as element, attribute, or text nodes.
 
-However, writing markup in code is tedious and error-prone. Mu allows
-creating well-formed markup with Python code and basic Python data
-structures.
+However, writing markup in code is tedious and error-prone. Mu allows creating well-formed markup with Python code and basic Python data structures.
 
 ### Element nodes
 
-An element node is made up of a tag, an optional attribute dictionary
-and zero or more content nodes which themselves can be made up of other
-elements.
+An element node is made up of a tag, an optional attribute dictionary and zero or more content nodes which themselves can be made up of other elements.
 
 ```python
 el = ["p", {"id": 1}, "this is a paragraph."]
@@ -70,10 +62,7 @@ mu.has_attrs(el)        # does it have attributes?
 
 ### Render markup
 
-The `mu.markup` function may have a keyword argument that specifies the
-type of markup generated. Although XML, XHTML, HTML look very similar
-there are some slight differences mainly to how empty elements are
-rendered.
+The `mu.markup` function may have a keyword argument that specifies the type of markup generated. Although XML, XHTML, HTML look very similar there are some slight differences mainly to how empty elements are rendered.
 
 ```python
 mu.markup(["img"], mode="xml")     # <img/>
@@ -86,8 +75,7 @@ Note that Mu tries to do the correct thing when the markup mode is HTML.
 
 ### Special nodes
 
-XML has a few syntactic constructs that you usually don't need.
-But if you do need them, you can represent them in Mu as follows.
+XML has a few syntactic constructs that you usually don't need. But if you do need them, you can represent them in Mu as follows.
 
 ```python
 ["$comment", "this is a comment"]
@@ -105,18 +93,14 @@ These will be rendered as:
 <foo/>
 ```
 
-Every `tag` that starts with `$` is considered a special node.
-Special nodes with a tag different from `$comment`, `$pi`, or `$cdata`
-will be dropped when generating markup.
+Every `tag` that starts with `$` is considered a special node. Special nodes with a tag different from `$comment`, `$pi`, or `$cdata` will be dropped when generating markup.
 
 A CDATA node will not escape it's content as is usual in XML and HTML.
 
 
 ### Namespaces
 
-Mu does not enforce XML rules. You can use namespaces but you have
-to provide the namespace declarations as is expected by
-[XML Namespaces](https://www.w3.org/TR/xml-names).
+Mu does not enforce XML rules. You can use namespaces but you have to provide the namespace declarations as is expected by [XML Namespaces](https://www.w3.org/TR/xml-names).
 
 ```python
 ["svg", {"xmlns": "http://www.w3.org/2000/svg"},
@@ -130,8 +114,7 @@ to provide the namespace declarations as is expected by
 </svg>
 ```
 
-The following uses explicit namespace prefixes and is semantically
-identical to the previous example.
+The following uses explicit namespace prefixes and is semantically identical to the previous example.
 
 ```python
 ["svg:svg", {"xmlns:svg": "http://www.w3.org/2000/svg"},
@@ -147,25 +130,14 @@ identical to the previous example.
 
 ### Object nodes
 
-Object nodes may appear in two positions inside a Mu data
-structure.
+Object nodes may appear in two positions inside a Mu data structure.
 
-1) In the content position of an element node (e.g.
-   `["p", {"class": "x"}, obj]`) or,
-2) In the tag position of an element node (e.g.
-   `[obj, {"class": "x"}, "content"]`)
+1) In the content position of an element node (e.g. `["p", {"class": "x"}, obj]`) or,
+2) In the tag position of an element node (e.g. `[obj, {"class": "x"}, "content"]`)
 
-In both cases the object's `xml` method is called when
-rendered into markup. The `xml` method is always called without
-any arguments. However, when the object appears in the tag
-position then the attributes dict is passed to the object
-using its `set_attr` method, and the content nodes are passed
-using the `set_content` method.
+In both cases the object's `xml` method is called when rendered into markup. The `xml` method is always called without any arguments. However, when the object appears in the tag position then the attributes dict is passed to the object using its `set_attr` method, and the content nodes are passed using the `set_content` method.
 
-Object nodes have to be derived from the `mu.Node` class and must
-implement two methods: `mu` and `xml`. Note that rendering
-markup only requires the latter but rendering XML is easier
-by using Mu itself (as this example shows).
+Object nodes have to be derived from the `mu.Node` class and must implement two methods: `mu` and `xml`. Note that rendering markup only requires the latter but rendering XML is easier by using Mu itself (as this example shows).
 
 As an example take the following custom class definition.
 
@@ -185,10 +157,8 @@ class OL(mu.Node):
 ```
 
 - This class is defined as a subclass from the `mu.Node` class.
-- The `mu` method builds an order list element and list item for
-  each content item.
-- The `xml` method calls the `mu` method and renders it as XML
-  markup.
+- The `mu` method builds an order list element and list item for each content item.
+- The `xml` method calls the `mu` method and renders it as XML markup.
 
 Now let's use this class in a Mu data structure.
 
@@ -200,12 +170,9 @@ mu.markup(["div", OL(), "foo"])
 <div><ol/>foo</div>
 ```
 
-Here the `OL()` object is in the content position so no information is
-passed to it to render a list. This may be useful but in this case not
-what we want.
+Here the `OL()` object is in the content position so no information is passed to it to render a list. This may not be what you wanted to achieve.
 
-To produce a list the object must be in the tag position of an element
-node.
+To produce a list the object must be in the tag position of an element node.
 
 ```python
 ["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]]
@@ -221,8 +188,7 @@ node.
 </div>
 ```
 
-In some cases you may want to use the `mu.expand` function to only expand
-such object nodes to a straightforward data structure.
+In some cases you may want to use the `mu.expand` function to only expand such object nodes to a straightforward data structure.
 
 ```python
 mu.expand([OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"])
@@ -235,9 +201,7 @@ mu.expand([OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"])
   ["li", "item 3"]]
 ```
 
-Of course, you can build many other types of objects using this object node
-concept. You can provide an `__init__` method to populate the object with
-initial content etc. etc.
+Of course, you can build many other types of objects using this object node concept. You can provide an `__init__` method to populate the object with initial content etc. etc.
 
 
 ## Related work
