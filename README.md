@@ -175,7 +175,7 @@ Here the `OL()` object is in the content position so no information is passed to
 To produce a list the object must be in the tag position of an element node.
 
 ```python
-["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]]
+mu:markup(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 ```
 
 ```xml
