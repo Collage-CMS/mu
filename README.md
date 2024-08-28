@@ -93,9 +93,9 @@ These will be rendered as:
 <foo/>
 ```
 
-Every `tag` that starts with `$` is considered a special node. Special nodes with a tag different from `$comment`, `$pi`, or `$cdata` will be dropped when generating markup.
+Every tag name that starts with `$` is considered a special node. Special nodes other than the ones mentioned above will be quietly disappear from the generated markup.
 
-A CDATA node will not escape it's content as is usual in XML and HTML.
+A `$cdata` node will not escape it's content as is usual in XML and HTML. A `$raw` node is very useful for adding string content that already contains markup.
 
 
 ### Namespaces
