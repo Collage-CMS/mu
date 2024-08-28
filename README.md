@@ -93,7 +93,7 @@ These will be rendered as:
 <foo/>
 ```
 
-Every tag name that starts with `$` is considered a special node. Special nodes other than the ones mentioned above will be quietly disappear from the generated markup.
+Every tag name that starts with `$` is considered a special node. Special nodes other than the ones mentioned above will simply disappear from the markup returned by `markup`. Note that they will remain in the nodes returned from `expand`.
 
 A `$cdata` node will not escape it's content as is usual in XML and HTML. A `$raw` node is very useful for adding string content that already contains markup.
 
