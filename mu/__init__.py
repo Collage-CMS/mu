@@ -202,7 +202,7 @@ def _end_tag(mode):
         return ">"
 
 
-def _expand_node(node):
+def _expand_nodes(node):
     if is_element(node):
         node_tag = tag(node)
         node_attrs = attrs(node)
@@ -216,13 +216,13 @@ def _expand_node(node):
             mu = [node_tag]
             if len(node_attrs) > 0:
                 mu.append(node_attrs)
-            mu.extend([_expand_node(child) for child in node_content])
+            mu.extend([_expand_nodes(child) for child in node_content])
             return mu
     elif isinstance(node, (list, tuple)):
         mu = []
         for child in node:
             if child is not None:
-                mu.append(_expand_node(child))
+                mu.append(_expand_nodes(child))
         return mu
     else:
         if _node_has_mu_method(node):
@@ -231,7 +231,7 @@ def _expand_node(node):
             return node
 
 
-def _apply_node(node, rules: dict):
+def _apply_nodes(node, rules: dict):
     if is_element(node):
         node_tag = tag(node)
         node_attrs = attrs(node)
@@ -249,13 +249,13 @@ def _apply_node(node, rules: dict):
             mu = [node_tag]
             if len(node_attrs) > 0:
                 mu.append(node_attrs)
-            mu.extend([_apply_node(child, rules) for child in node_content])
+            mu.extend([_apply_nodes(child, rules) for child in node_content])
             return mu
     elif isinstance(node, (list, tuple)):
         mu = []
         for child in node:
             if child is not None:
-                mu.append(_apply_node(child, rules))
+                mu.append(_apply_nodes(child, rules))
         return mu
     else:
         return node
@@ -263,13 +263,13 @@ def _apply_node(node, rules: dict):
 
 def expand(nodes):
     """Expand a Mu datastructure (invoking all Mu objects mu() method)."""
-    return _expand_node(nodes)
+    return _expand_nodes(nodes)
 
 
 def apply(nodes, rules: dict):
     """Expand a Mu datastructure replacing nodes that have a rule by invoking
     its value mu() method."""
-    return _apply_node(nodes, rules)
+    return _apply_nodes(nodes, rules)
 
 
 def markup(*nodes, mode: str = "xml"):
