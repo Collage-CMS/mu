@@ -1,8 +1,8 @@
 #
 # Generate XML using a regular Python data structure.
 #
-# Note that this does not guarantee well-formed XML but it does make it easier to
-# produce XML strings.
+# Note that this does not guarantee well-formed XML but it does make it easier
+# to produce XML strings.
 #
 #    mu.markup(['foo', {'a': 10}, 'bar']) => <foo a="10">bar</foo>
 #
@@ -117,7 +117,7 @@ def _format_attrs(attributes, mode: str = "xml"):
                 output.append(f' {name}="{name}"')
         elif isinstance(value, (list, tuple)):
             output.append(
-                f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"'
+                f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"'  # noqa
             )
         else:
             output.append(f' {name}="{util.escape_html(value)}"')
@@ -231,13 +231,50 @@ def _expand_node(node):
             return node
 
 
+def _apply_node(node, rules: dict):
+    if is_element(node):
+        node_tag = tag(node)
+        node_attrs = attrs(node)
+        node_content = content(node)
+        if node_tag in rules:
+            if _node_has_mu_method(rules[node_tag]):
+                rule = rules[node_tag]
+                if len(node_attrs) > 0:
+                    rule.set_attrs(node_attrs)
+                rule.set_content(node_content)
+                return rule.mu()
+            else:
+                return rules[node_tag]
+        else:
+            mu = [node_tag]
+            if len(node_attrs) > 0:
+                mu.append(node_attrs)
+            mu.extend([_apply_node(child, rules) for child in node_content])
+            return mu
+    elif isinstance(node, (list, tuple)):
+        mu = []
+        for child in node:
+            if child is not None:
+                mu.append(_apply_node(child, rules))
+        return mu
+    else:
+        return node
+
+
 def expand(nodes):
     """Expand a Mu datastructure (invoking all Mu objects mu() method)."""
     return _expand_node(nodes)
 
 
+def apply(nodes, rules: dict):
+    """Expand a Mu datastructure replacing nodes that have a rule by invoking
+    its value mu() method."""
+    return _apply_node(nodes, rules)
+
+
 def markup(*nodes, mode: str = "xml"):
-    """Convert a Mu datastructure into Markup string using the correct conventions."""
+    """Convert a Mu datastructure into Markup string using the correct
+    conventions."""
     output = []
     for node in nodes:
         output.extend(_convert_node(node, mode))
@@ -265,9 +302,7 @@ def from_dict(py_value, parent=None):
             return "false"
     elif typ == list:
         return [["li", from_dict(node)] for node in py_value]
-    elif (
-        typ == dict
-    ):  # when inside a named node we don't need the object element only at top level
+    elif typ == dict:
         mu = ["object"] if parent is None else []
         for key in py_value:
             mu.append([key, from_dict(py_value[key], parent=key)])

@@ -188,21 +188,55 @@ mu.markup(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"
 </div>
 ```
 
-In some cases you may want to use the `mu.expand` function to only expand such object nodes to a straightforward data structure.
+### Expand nodes
+
+In some cases you may want to use the `mu.expand` function to only expand object nodes to a straightforward data structure.
 
 ```python
 mu.expand(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 ```
 
 ```python
-["div"
+["div",
   ["ol", {"class": ("foo", "bar")},
     ["li", "item 1"],
     ["li", "item 2"],
     ["li", "item 3"]]]
 ```
 
-Of course, you can build many other types of objects using this object node concept. You can provide an `__init__` method to populate the object with initial content etc. etc.
+### Apply nodes
+
+A third and final method of building a document is `mu.apply`. It gets a dictionary with rules. The values of the dictionar are either a replacement value or a `mu.Node` (or something that looks like one).
+
+Using the previous example of the `UL` object we can illustrate how `my.apply` works.
+
+Say we have a Mu data structure in which we want to replace each `foo` element with an unordered list node object.
+
+```python
+mu.apply(
+  ["doc", ["foo", {"class" "x"}, "item 1", "item 2"]],
+  {"foo": OL()})
+```
+
+```python
+["doc",
+  ["ol", {"class": "x"}, ["li", "item 1"], ["li", "item 2"]]]
+```
+
+You can also pass in literal values that get replaced when the element name matches a rule.
+
+```python
+mu.apply(
+  ["doc", ["$foo"], ["bar"], ["$foo"]],
+  {"$foo": ["BAR"]})
+```
+
+```python
+["doc",
+  ["BAR"],["bar"], ["BAR"]]
+```
+
+Note that when object nodes are found they won't get expanded unless they are present in the rules dictionary.
 
 
 ## Related work
