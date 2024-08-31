@@ -93,9 +93,11 @@ These will be rendered as:
 <foo/>
 ```
 
-Every tag name that starts with `$` is considered a special node. Special nodes other than the ones mentioned above will simply disappear from the markup returned by `markup`. Note that they will remain in the nodes returned from `expand`.
+Origami will only convert the above mentioned special nodes correctly. Other tag names that start with `$` are reserved for other applications. The `markup` function will simply drop special nodes that it does not recognize.
 
 A `$cdata` node will not escape it's content as is usual in XML and HTML. A `$raw` node is very useful for adding string content that already contains markup.
+
+A `$comment` node will ensure that the forbidden `--` is not part of the comment text.
 
 
 ### Namespaces
@@ -206,7 +208,7 @@ mu.expand(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"
 
 ### Apply nodes
 
-A third and final method of building a document is `mu.apply`. It gets a dictionary with rules. The values of the dictionar are either a replacement value or a `mu.Node` (or something that looks like one).
+A third and final method of building a document is `mu.apply`. It gets a dictionary with rules. The values of the dictionary are either a replacement value or a `mu.Node` (or something that looks like one).
 
 Using the previous example of the `UL` object we can illustrate how `my.apply` works.
 
