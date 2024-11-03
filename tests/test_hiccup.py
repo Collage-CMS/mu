@@ -4,8 +4,6 @@
 # TODO there is some overlap with the tests in test_mu.py
 from __future__ import annotations
 
-import pytest
-
 import mu as mu
 
 # https://github.com/weavejester/hiccup/blob/master/test/hiccup/compiler_test.clj
@@ -14,48 +12,48 @@ import mu as mu
 class TestCompile:
 
     def test_normal_tag_with_attrs(self):
-        assert mu.markup(["p", {"id": 1}], mode="xhtml") == '<p id="1"></p>'
-        assert mu.markup(["p", {"id": 1}], mode="html") == '<p id="1"></p>'
-        assert mu.markup(["p", {"id": 1}], mode="xml") == '<p id="1"/>'
-        assert mu.markup(["p", {"id": 1}], mode="sgml") == '<p id="1">'
+        assert mu.markup(["p", {"id": 1}], mode=mu.Mode.XHTML) == '<p id="1"></p>'
+        assert mu.markup(["p", {"id": 1}], mode=mu.Mode.HTML) == '<p id="1"></p>'
+        assert mu.markup(["p", {"id": 1}], mode=mu.Mode.XML) == '<p id="1"/>'
+        assert mu.markup(["p", {"id": 1}], mode=mu.Mode.SGML) == '<p id="1">'
 
     def test_void_tag_with_attrs(self):
-        assert mu.markup(["br", {"id": 1}], mode="xhtml") == '<br id="1" />'
-        assert mu.markup(["br", {"id": 1}], mode="html") == '<br id="1">'
-        assert mu.markup(["br", {"id": 1}], mode="xml") == '<br id="1"/>'
-        assert mu.markup(["br", {"id": 1}], mode="sgml") == '<br id="1">'
+        assert mu.markup(["br", {"id": 1}], mode=mu.Mode.XHTML) == '<br id="1" />'
+        assert mu.markup(["br", {"id": 1}], mode=mu.Mode.HTML) == '<br id="1">'
+        assert mu.markup(["br", {"id": 1}], mode=mu.Mode.XML) == '<br id="1"/>'
+        assert mu.markup(["br", {"id": 1}], mode=mu.Mode.SGML) == '<br id="1">'
 
     def test_normal_tag_with_content(self):
-        assert mu.markup(["p", "x"], mode="xhtml") == "<p>x</p>"
-        assert mu.markup(["p", "x"], mode="html") == "<p>x</p>"
-        assert mu.markup(["p", "x"], mode="xml") == "<p>x</p>"
-        assert mu.markup(["p", "x"], mode="sgml") == "<p>x</p>"
+        assert mu.markup(["p", "x"], mode=mu.Mode.XHTML) == "<p>x</p>"
+        assert mu.markup(["p", "x"], mode=mu.Mode.HTML) == "<p>x</p>"
+        assert mu.markup(["p", "x"], mode=mu.Mode.XML) == "<p>x</p>"
+        assert mu.markup(["p", "x"], mode=mu.Mode.SGML) == "<p>x</p>"
 
     def test_void_tag_with_content(self):
-        assert mu.markup(["br", "x"], mode="xhtml") == "<br>x</br>"
-        assert mu.markup(["br", "x"], mode="html") == "<br>x</br>"
-        assert mu.markup(["br", "x"], mode="xml") == "<br>x</br>"
-        assert mu.markup(["br", "x"], mode="sgml") == "<br>x</br>"
+        assert mu.markup(["br", "x"], mode=mu.Mode.XHTML) == "<br>x</br>"
+        assert mu.markup(["br", "x"], mode=mu.Mode.HTML) == "<br>x</br>"
+        assert mu.markup(["br", "x"], mode=mu.Mode.XML) == "<br>x</br>"
+        assert mu.markup(["br", "x"], mode=mu.Mode.SGML) == "<br>x</br>"
 
     def test_normal_tag_without_attrs(self):
-        assert mu.markup(["p", {}], mode="xhtml") == "<p></p>"
-        assert mu.markup(["p", {}], mode="html") == "<p></p>"
-        assert mu.markup(["p", {}], mode="xml") == "<p/>"
-        assert mu.markup(["p", {}], mode="sgml") == "<p>"
-        assert mu.markup(["p", None], mode="xhtml") == "<p></p>"
-        assert mu.markup(["p", None], mode="html") == "<p></p>"
-        assert mu.markup(["p", None], mode="xml") == "<p/>"
-        assert mu.markup(["p", None], mode="sgml") == "<p>"
+        assert mu.markup(["p", {}], mode=mu.Mode.XHTML) == "<p></p>"
+        assert mu.markup(["p", {}], mode=mu.Mode.HTML) == "<p></p>"
+        assert mu.markup(["p", {}], mode=mu.Mode.XML) == "<p/>"
+        assert mu.markup(["p", {}], mode=mu.Mode.SGML) == "<p>"
+        assert mu.markup(["p", None], mode=mu.Mode.XHTML) == "<p></p>"
+        assert mu.markup(["p", None], mode=mu.Mode.HTML) == "<p></p>"
+        assert mu.markup(["p", None], mode=mu.Mode.XML) == "<p/>"
+        assert mu.markup(["p", None], mode=mu.Mode.SGML) == "<p>"
 
     def test_void_tag_without_attrs(self):
-        assert mu.markup(["br", {}], mode="xhtml") == "<br />"
-        assert mu.markup(["br", {}], mode="html") == "<br>"
-        assert mu.markup(["br", {}], mode="xml") == "<br/>"
-        assert mu.markup(["br", {}], mode="sgml") == "<br>"
-        assert mu.markup(["br", None], mode="xhtml") == "<br />"
-        assert mu.markup(["br", None], mode="html") == "<br>"
-        assert mu.markup(["br", None], mode="xml") == "<br/>"
-        assert mu.markup(["br", None], mode="sgml") == "<br>"
+        assert mu.markup(["br", {}], mode=mu.Mode.XHTML) == "<br />"
+        assert mu.markup(["br", {}], mode=mu.Mode.HTML) == "<br>"
+        assert mu.markup(["br", {}], mode=mu.Mode.XML) == "<br/>"
+        assert mu.markup(["br", {}], mode=mu.Mode.SGML) == "<br>"
+        assert mu.markup(["br", None], mode=mu.Mode.XHTML) == "<br />"
+        assert mu.markup(["br", None], mode=mu.Mode.HTML) == "<br>"
+        assert mu.markup(["br", None], mode=mu.Mode.XML) == "<br/>"
+        assert mu.markup(["br", None], mode=mu.Mode.SGML) == "<br>"
 
 
 # https://github.com/weavejester/hiccup/blob/master/test/hiccup/core_test.clj
@@ -75,36 +73,36 @@ class TestTagContents:
     def test_empty_tags(self):
         # NOTE default mode is XML, hiccup's default mode is XHTML
         assert mu.markup(["div"]) == "<div/>"
-        assert mu.markup(["div"], mode="xhtml") == "<div></div>"
+        assert mu.markup(["div"], mode=mu.Mode.XHTML) == "<div></div>"
         assert mu.markup(["h1"]) == "<h1/>"
-        assert mu.markup(["h1"], mode="xhtml") == "<h1></h1>"
+        assert mu.markup(["h1"], mode=mu.Mode.XHTML) == "<h1></h1>"
         assert mu.markup(["script"]) == "<script/>"
-        assert mu.markup(["script"], mode="xhtml") == "<script></script>"
+        assert mu.markup(["script"], mode=mu.Mode.XHTML) == "<script></script>"
         assert mu.markup(["text"]) == "<text/>"
-        assert mu.markup(["text"], mode="xhtml") == "<text></text>"
+        assert mu.markup(["text"], mode=mu.Mode.XHTML) == "<text></text>"
         assert mu.markup(["a"]) == "<a/>"
-        assert mu.markup(["a"], mode="xhtml") == "<a></a>"
+        assert mu.markup(["a"], mode=mu.Mode.XHTML) == "<a></a>"
         assert mu.markup(["iframe"]) == "<iframe/>"
-        assert mu.markup(["iframe"], mode="xhtml") == "<iframe></iframe>"
+        assert mu.markup(["iframe"], mode=mu.Mode.XHTML) == "<iframe></iframe>"
         assert mu.markup(["title"]) == "<title/>"
-        assert mu.markup(["title"], mode="xhtml") == "<title></title>"
+        assert mu.markup(["title"], mode=mu.Mode.XHTML) == "<title></title>"
         assert mu.markup(["section"]) == "<section/>"
-        assert mu.markup(["section"], mode="xhtml") == "<section></section>"
+        assert mu.markup(["section"], mode=mu.Mode.XHTML) == "<section></section>"
         assert mu.markup(["select"]) == "<select/>"
-        assert mu.markup(["select"], mode="xhtml") == "<select></select>"
+        assert mu.markup(["select"], mode=mu.Mode.XHTML) == "<select></select>"
         assert mu.markup(["object"]) == "<object/>"
-        assert mu.markup(["object"], mode="xhtml") == "<object></object>"
+        assert mu.markup(["object"], mode=mu.Mode.XHTML) == "<object></object>"
         assert mu.markup(["video"]) == "<video/>"
-        assert mu.markup(["video"], mode="xhtml") == "<video></video>"
+        assert mu.markup(["video"], mode=mu.Mode.XHTML) == "<video></video>"
 
     def test_void_tags(self):
         assert mu.markup(["br"]) == "<br/>"
-        assert mu.markup(["br"], mode="xhtml") == "<br />"
+        assert mu.markup(["br"], mode=mu.Mode.XHTML) == "<br />"
         assert mu.markup(["link"]) == "<link/>"
-        assert mu.markup(["link"], mode="xhtml") == "<link />"
+        assert mu.markup(["link"], mode=mu.Mode.XHTML) == "<link />"
         assert mu.markup(["colgroup", {"span": 2}]) == '<colgroup span="2"/>'
         assert (
-            mu.markup(["colgroup", {"span": 2}], mode="xhtml")
+            mu.markup(["colgroup", {"span": 2}], mode=mu.Mode.XHTML)
             == '<colgroup span="2"></colgroup>'
         )
 
@@ -116,7 +114,7 @@ class TestTagContents:
         assert mu.markup(["body", ["p"], ["br"]]) == "<body><p/><br/></body>"
         # FIXME
         # assert (
-        #    mu.markup(["body", ["p"], ["br"]], mode="xhtml")
+        #    mu.markup(["body", ["p"], ["br"]], mode=mu.Mode.XHTML)
         #    == "<body><p></p><br /></body>"
         # )
 
@@ -128,7 +126,7 @@ class TestTagContents:
     def test_tags_can_contain_tags(self):
         assert mu.markup(["div", ["p"]]) == "<div><p/></div>"
         # FIXME
-        # assert mu.markup(["div", ["p"]], mode="xhtml") == "<div><p></p></div>"
+        # assert mu.markup(["div", ["p"]], mode=mu.Mode.XHTML) == "<div><p></p></div>"
 
 
 class TestTagAttributes:
@@ -151,11 +149,11 @@ class TestTagAttributes:
 
     def test_boolean_attributes(self):
         assert (
-            mu.markup(["input", {"type": "checkbox", "checked": True}], mode="html")
-            == '<input checked="checked" type="checkbox">'
+            mu.html(["input", {"type": "checkbox", "checked": True}])
+            == '<input checked type="checkbox">'
         )
         assert (
-            mu.markup(["input", {"type": "checkbox", "checked": False}], mode="html")
+            mu.html(["input", {"type": "checkbox", "checked": False}])
             == '<input type="checkbox">'
         )
 
@@ -170,19 +168,8 @@ class TestTagAttributes:
 class TestRenderModes:
 
     def test_closed_tag(self):
-        assert mu.markup(["p"], ["br"]) == "<p/><br/>"
-        assert mu.markup(["p"], ["br"], mode="xhtml") == "<p></p><br />"
-        assert mu.markup(["p"], ["br"], mode="html") == "<p></p><br>"
-        assert mu.markup(["p"], ["br"], mode="xml") == "<p/><br/>"
-        assert mu.markup(["p"], ["br"], mode="sgml") == "<p><br>"
-
-    @pytest.mark.skip(reason="this functionality is not yet implemented")
-    def test_boolean_attributes(self):
-        assert (
-            mu.markup(["input", {"type": "checkbox", "checked": True}])
-            == '<input checked="checked" type="checkbox"/>'
-        )
-        assert (
-            mu.markup(["input", {"type": "checkbox", "checked": True}], mode="sgml")
-            == '<input checked type="checkbox">'
-        )
+        assert mu.markup(["p"], ["br"]) == "<p/><br/>"  # default mode = xml
+        assert mu.xhtml(["p"], ["br"]) == "<p></p><br />"
+        assert mu.html(["p"], ["br"]) == "<p></p><br>"
+        assert mu.xml(["p"], ["br"]) == "<p/><br/>"
+        assert mu.sgml(["p"], ["br"]) == "<p><br>"

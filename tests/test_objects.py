@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import mu
+from mu import Mode
 from mu import Node
 
 
@@ -18,8 +19,8 @@ class UL(Node):
             ol.append(["li", item])
         return ol
 
-    def xml(self):
-        return mu.markup(self.mu())
+    def xml(self, mode=Mode.XML):
+        return mu.markup(self.mu(), mode=mode)
 
 
 class TestMuContentWithNulls:

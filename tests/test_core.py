@@ -54,37 +54,41 @@ class TestAccessors:
 class TestIsElement:
 
     def test_is_not_element(self):
-        assert mu.is_element([]) is False
-        assert mu.is_element(0) is False
-        assert mu.is_element(None) is False
-        assert mu.is_element({}) is False
-        assert mu.is_element("foo") is False
-        assert mu.is_element(True) is False
+        assert mu._is_element([]) is False
+        assert mu._is_element(0) is False
+        assert mu._is_element(None) is False
+        assert mu._is_element({}) is False
+        assert mu._is_element("foo") is False
+        assert mu._is_element(True) is False
 
     def test_is_element(self):
-        assert mu.is_element(["foo"]) is True
-        assert mu.is_element(["foo", ["bar"]]) is True
-        assert mu.is_element(["foo", "bla"]) is True
-        assert mu.is_element(["foo", {}, "bla"]) is True
+        assert mu._is_element(["foo"]) is True
+        assert mu._is_element(["foo", ["bar"]]) is True
+        assert mu._is_element(["foo", "bla"]) is True
+        assert mu._is_element(["foo", {}, "bla"]) is True
 
-    def test_is_obj_instance_element(self):
-        assert mu.is_element([OL(), 1, 2, 3]) is True
+    def test_is_not_active_element(self):
+        assert mu._is_active_element([bool, 1, 2, 3]) is False
+
+    def test_is_active_element(self):
+        assert mu._is_element([OL(), 1, 2, 3]) is True
+        assert mu._is_active_element([OL(), 1, 2, 3]) is True
 
 
 class TestIsSpecialNode:
 
     def test_is_not_special(self):
-        assert mu.is_special_node(None) is False
-        assert mu.is_special_node("foo") is False
-        assert mu.is_special_node([]) is False
-        assert mu.is_special_node(["foo"]) is False
+        assert mu._is_special_node(None) is False
+        assert mu._is_special_node("foo") is False
+        assert mu._is_special_node([]) is False
+        assert mu._is_special_node(["foo"]) is False
 
     def test_is_special(self):
-        assert mu.is_special_node(["$comment"]) is True
-        assert mu.is_special_node(["$cdata"]) is True
-        assert mu.is_special_node(["$pi"]) is True
-        assert mu.is_special_node(["$foo"]) is True
-        assert mu.is_special_node(["$raw"]) is True
+        assert mu._is_special_node(["$comment"]) is True
+        assert mu._is_special_node(["$cdata"]) is True
+        assert mu._is_special_node(["$pi"]) is True
+        assert mu._is_special_node(["$foo"]) is True
+        assert mu._is_special_node(["$raw"]) is True
 
 
 class TestHasAttributes:
@@ -261,6 +265,6 @@ class TestTagFormatting:
     def test_empty_elements(self):
         assert mu.markup(["img"]) == "<img/>"
         assert mu.markup(["img", {"src": "foo"}]) == '<img src="foo"/>'
-        assert mu.markup(["img"], mode="xhtml") == "<img />"
-        assert mu.markup(["img"], mode="html") == "<img>"
-        assert mu.markup(["img"], mode="sgml") == "<img>"
+        assert mu.markup(["img"], mode=mu.Mode.XHTML) == "<img />"
+        assert mu.markup(["img"], mode=mu.Mode.HTML) == "<img>"
+        assert mu.markup(["img"], mode=mu.Mode.SGML) == "<img>"
