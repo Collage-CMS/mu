@@ -3,6 +3,7 @@ from __future__ import annotations
 import mu as mu
 import mu.element as el
 import mu.util as util
+from mu import Mode
 
 
 doctype = {
@@ -26,7 +27,7 @@ def xml_declaration(encoding):
 def html4(*contents, attrs: dict = {}):
     wrapper = ["html4"]
     wrapper.append(attrs) if attrs else wrapper
-    return mu.markup(doctype["html4"], el.wrap(["html"], contents), mode="sgml")
+    return mu.markup(doctype["html4"], el.wrap(["html"], contents), mode=Mode.SGML)
 
 
 def html5(
@@ -50,10 +51,10 @@ def html5(
             xml_declaration(encoding),
             doctype["html5"],
             el.wrap(wrapper, contents),
-            mode="xhtml",
+            mode=Mode.XHTML,
         )
     else:
-        return mu.markup(doctype["html5"], ["html", {}, *contents], mode="html")
+        return mu.markup(doctype["html5"], ["html", {}, *contents], mode=Mode.HTML)
 
 
 def xhtml(*contents, lang: str = None, encoding: str = "UTF-8", attrs: dict = {}):
@@ -66,7 +67,7 @@ def xhtml(*contents, lang: str = None, encoding: str = "UTF-8", attrs: dict = {}
         xml_declaration(encoding),
         doctype["xhtml-strict"],
         el.wrap(wrapper, contents),
-        mode="xhtml",
+        mode=Mode.XHTML,
     )
 
 
