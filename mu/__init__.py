@@ -48,21 +48,21 @@ SPECIAL_NODES: frozenset[str] = frozenset({"$raw", "$comment", "$cdata", "$pi"})
 class Node:
     """Base class for active markup nodes."""
 
-    def __init__(self, nodes, **attrs) -> None:
+    def __init__(self, *nodes, **attrs) -> None:
         self.set_content(nodes)
         self.set_attrs(attrs)
 
     def set_attrs(self, attrs={}) -> None:
         self._attrs = attrs
 
-    def set_content(self, nodes) -> None:
+    def set_content(self, nodes=[]) -> None:
         self._content = nodes
 
     def mu(self):
         raise NotImplementedError
 
-    def xml(self) -> str:
-        raise NotImplementedError
+    def xml(self, mode=Mode.XML) -> str:
+        return markup(self.mu())
 
 
 def _is_element(value) -> bool:
@@ -255,7 +255,7 @@ def _convert_sequence(node, mode: Mode = Mode.XML):
 def _convert_atomic(node, mode: Mode = Mode.XML):
     if node:
         if _is_active_element(node):
-            yield tag(node).xml()
+            yield tag(node).xml(mode)
         else:
             yield str(node)
     else:

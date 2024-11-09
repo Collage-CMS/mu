@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import mu
-from mu import Mode
+from mu import apply
+from mu import expand
+from mu import markup
 from mu import Node
 
 
@@ -12,57 +13,85 @@ class UL(Node):
         self._attrs = {}
 
     def mu(self):
-        ol = ["ol"]
+        ul = ["ul"]
         if len(self._attrs) > 0:
-            ol.append(self._attrs)
+            ul.append(self._attrs)
         for item in self._content:
-            ol.append(["li", item])
-        return ol
-
-    def xml(self, mode=Mode.XML):
-        return mu.markup(self.mu(), mode=mode)
+            ul.append(["li", item])
+        return ul
 
 
 class TestMuContentWithNulls:
 
     def test_nulls_in_content(self):
-        assert mu.markup(["xml", {}]) == "<xml/>"
-        assert mu.markup(["xml", None, None]) == "<xml/>"
-        assert mu.markup(["xml", None, 1, None, 2]) == "<xml>12</xml>"
+        assert markup(["xml", {}]) == "<xml/>"
+        assert markup(["xml", None, None]) == "<xml/>"
+        assert markup(["xml", None, 1, None, 2]) == "<xml>12</xml>"
 
 
 class TestMuContentList:
 
     def test_simple_seq_with_list_content(self):
-        assert mu.markup(["foo", (1, 2, 3)]) == "<foo>123</foo>"
-        assert mu.markup(["foo", "a", "b"]) == "<foo>ab</foo>"
-        assert mu.markup(["foo", ("a", "b")]) == "<foo>ab</foo>"
-        assert mu.markup(["foo", ("a", ("b"))]) == "<foo>ab</foo>"
-        assert mu.markup(["foo", [(1), "b"]]) == "<foo>1b</foo>"
-        assert mu.markup(["foo", [("a"), ("b"), "c"]]) == "<foo><a>bc</a></foo>"
+        assert markup(["foo", (1, 2, 3)]) == "<foo>123</foo>"
+        assert markup(["foo", "a", "b"]) == "<foo>ab</foo>"
+        assert markup(["foo", ("a", "b")]) == "<foo>ab</foo>"
+        assert markup(["foo", ("a", ("b"))]) == "<foo>ab</foo>"
+        assert markup(["foo", [(1), "b"]]) == "<foo>1b</foo>"
+        assert markup(["foo", [("a"), ("b"), "c"]]) == "<foo><a>bc</a></foo>"
 
 
 class TestMuObjects:
 
     def testMuObject(self):
         assert (
-            mu.markup(["foo", UL(1, 2, 3)])
-            == "<foo><ol><li>1</li><li>2</li><li>3</li></ol></foo>"
+            markup(["foo", UL(1, 2, 3)])
+            == "<foo><ul><li>1</li><li>2</li><li>3</li></ul></foo>"
         )
 
     def testMuObjectElement(self):
         assert (
-            mu.markup(["foo", [UL(), 1, 2, 3]])
-            == "<foo><ol><li>1</li><li>2</li><li>3</li></ol></foo>"
+            markup(["foo", [UL(), 1, 2, 3]])
+            == "<foo><ul><li>1</li><li>2</li><li>3</li></ul></foo>"
+        )
+        assert markup(["foo", [UL(), (1, 2, 3)]]) == "<foo><ul><li>123</li></ul></foo>"
+        assert (
+            markup(["foo", [UL(), {}, (1, 2, 3)]]) == "<foo><ul><li>123</li></ul></foo>"
         )
         assert (
-            mu.markup(["foo", [UL(), (1, 2, 3)]]) == "<foo><ol><li>123</li></ol></foo>"
+            markup(["foo", [UL(), {"class": ("foo", "bar")}, 1, 2]])
+            == '<foo><ul class="foo bar"><li>1</li><li>2</li></ul></foo>'
         )
-        assert (
-            mu.markup(["foo", [UL(), {}, (1, 2, 3)]])
-            == "<foo><ol><li>123</li></ol></foo>"
-        )
-        assert (
-            mu.markup(["foo", [UL(), {"class": ("foo", "bar")}, 1, 2]])
-            == '<foo><ol class="foo bar"><li>1</li><li>2</li></ol></foo>'
-        )
+
+
+class TestApply:
+
+    def test_apply(self):
+
+        assert apply(
+            ["doc", ["foo", {"class": "x"}, "item 1", "item 2"]], {"foo": UL()}
+        ) == ["doc", ["ul", {"class": "x"}, ["li", "item 1"], ["li", "item 2"]]]
+
+        assert apply(["doc", ["$foo"], ["bar"], ["$foo"]], {"$foo": ["BAR"]}) == [
+            "doc",
+            ["BAR"],
+            ["bar"],
+            ["BAR"],
+        ]
+
+
+class TestExpand:
+
+    def test_expand(self):
+
+        assert expand(
+            ["div", [UL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]]
+        ) == [
+            "div",
+            [
+                "ul",
+                {"class": ("foo", "bar")},
+                ["li", "item 1"],
+                ["li", "item 2"],
+                ["li", "item 3"],
+            ],
+        ]

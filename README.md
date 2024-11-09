@@ -22,6 +22,8 @@ mu.xml(["p", "Hello, ", ["b", "World"], "!"])
 
 Returns the string `<p>Hello, <b>World</b>!</p>`
 
+Note that serializing to a string will not guarantee well-formed XML.
+
 
 ## Documentation
 
@@ -157,9 +159,6 @@ class OL(mu.Node):
         for item in self._content:
             ol.append(["li", item])
         return ol
-
-    def xml(self):
-        return mu.markup(self.mu())
 ```
 
 - This class is defined as a subclass from the `mu.Node` class.
@@ -169,7 +168,7 @@ class OL(mu.Node):
 Now let's use this class in a Mu data structure.
 
 ```python
-mu.markup(["div", OL(), "foo"])
+mu.xml(["div", OL(), "foo"])
 ```
 
 ```xml
@@ -181,7 +180,7 @@ Here the `OL()` object is in the content position so no information is passed to
 To produce a list the object must be in the tag position of an element node.
 
 ```python
-mu.markup(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
+mu.xml(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 ```
 
 ```xml
@@ -220,7 +219,7 @@ Say we have a Mu data structure in which we want to replace each `foo` element w
 
 ```python
 mu.apply(
-  ["doc", ["foo", {"class" "x"}, "item 1", "item 2"]],
+  ["doc", ["foo", {"class": "x"}, "item 1", "item 2"]],
   {"foo": OL()})
 ```
 
@@ -268,6 +267,9 @@ mu.loads(['_', {'as': 'object'},
   ['b', {'as': 'boolean', 'value': 'true()'}],
   ['c', {'as': 'float'}, 3.0]])
 ```
+
+When `dumps()` encounters a Python object it will call it's `mu()` method if it exists otherwise it will not be part of the serialized result. A function object will be called and it's return value becomes part of the serialized result.
+
 
 ## Related work
 
