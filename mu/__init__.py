@@ -93,6 +93,17 @@ def has_attrs(value):
     )
 
 
+def get_attr(name, node, default=None):
+    if _is_element(node):
+        atts = attrs(node)
+        if name in atts:
+            return atts[name]
+        else:
+            return default
+    else:
+        raise ValueError(node)
+
+
 # Accessor functions
 
 
@@ -255,7 +266,6 @@ def _convert_atomic(node, mode: Mode = Mode.XML):
 
 # mode: html, xhtml, xml, sgml (default xml)
 def _end_tag(mode):
-    print(f"End tag {mode}")
     if mode == Mode.XML:
         return "/>"
     elif mode == Mode.XHTML:
