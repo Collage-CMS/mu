@@ -3,13 +3,6 @@
 Represent HTML and XML using Python data structures. This does for Python what the [Hiccup](https://github.com/weavejester/hiccup) library by James Reeves did for the Clojure language.
 
 
-## Install
-
-```shell
-pip install mu
-```
-
-
 ## Usage
 
 To render a Mu data structure as markup (XML, XHTML or HTML) use the `mu.markup` function.
