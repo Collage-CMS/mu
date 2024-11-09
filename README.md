@@ -136,9 +136,7 @@ Object nodes may appear in two positions inside a Mu data structure.
 1) In the content position of an element node (e.g. `["p", {"class": "x"}, obj]`) or,
 2) In the tag position of an element node (e.g. `[obj, {"class": "x"}, "content"]`)
 
-In both cases the object's `xml` method is called when rendered into markup. The `xml` method is always called without any arguments. However, when the object appears in the tag position then the attributes dict is passed to the object using its `set_attr` method, and the content nodes are passed using the `set_content` method.
-
-Object nodes have to be derived from the `mu.Node` class and must implement two methods: `mu` and `xml`. The `markup` function will call the object's `xml` method. The `expand` function will call the object's `mu` method.
+Object nodes have to be derived from the `mu.Node` class and must implement the `mu` method which should generate well-formed Mu data. This method will be called when rendering or expanding the Mu data structure.
 
 As an example take the following custom class definition.
 
@@ -154,11 +152,7 @@ class OL(mu.Node):
         return ol
 ```
 
-- This class is defined as a subclass from the `mu.Node` class.
-- The `mu` method builds an order list element and list item for each content item.
-- The `xml` method calls the `mu` method and renders it as XML markup.
-
-Now let's use this class in a Mu data structure.
+Let's use this class in a Mu data structure.
 
 ```python
 mu.xml(["div", OL(), "foo"])
