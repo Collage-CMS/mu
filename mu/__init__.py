@@ -242,7 +242,6 @@ def _convert_active_element(node, mode: Mode = Mode.XML):
     node_obj = tag(node)
     node_obj.set_attrs(attrs(node))
     node_obj.set_content(content(node))
-    # TODO change .xml to .markup
     yield node_obj.xml(mode)
 
 
@@ -254,7 +253,6 @@ def _convert_sequence(node, mode: Mode = Mode.XML):
 
 
 def _convert_atomic(node, mode: Mode = Mode.XML):
-    # TODO: pass mode to xml() method
     if node:
         if _is_active_element(node):
             yield tag(node).xml()
@@ -423,3 +421,150 @@ def sgml(*nodes):
 
 def xml(*nodes):
     return markup(*nodes, mode=Mode.XML)
+
+
+ATOMIC_VALUE = set([int, str, float, complex, bool, str])
+
+
+def _loads_content(nodes):
+    # if len(nodes) == 0:
+    #    return None
+    if len(nodes) == 1:
+        return loads(nodes[0])
+    else:
+        return [loads(node) for node in nodes]
+
+
+def _loads_boolean(node):
+    v = get_attr("value", node)
+    if v == "true()":
+        return True
+    else:
+        return False
+
+
+def loads(node):
+    """Create a Python value from a Mu value."""
+    typ = type(node)
+    if typ in ATOMIC_VALUE or node is None:
+        return node
+    elif typ == list:
+        if _is_element(node):
+            node_typ = get_attr("as", node, "string")
+            if node_typ == "object":
+                obj = {}
+                i = 0
+                for item in content(node):
+                    i += 1
+                    if _is_element(item):
+                        item_key = get_attr("key", item, tag(item))
+                        item_value = loads(item)
+                    else:
+                        item_key = i
+                        item_value = loads(item)
+                    obj[item_key] = item_value
+                return obj
+            elif node_typ == "array":
+                arr = []
+                for item in content(node):
+                    arr.append(loads(item))
+                return arr
+            elif node_typ == "string":
+                return _loads_content(content(node))
+            elif node_typ == "boolean":
+                return _loads_boolean(node)
+            elif node_typ == "null":
+                return None
+            elif node_typ == "number":
+                pass
+
+        else:
+            li = []
+            for i in node:
+                li.append(loads(i))
+            return li
+    elif typ == dict:
+        # dicts in mu are attributes so only used for control
+        pass
+    else:
+        raise ValueError(f"Unknown node {node}")
+
+
+def _dumps_none(key="_"):
+    return [key, {"as": "null"}]
+
+
+def _dumps_string(value, key="_"):
+    return [key, value]
+
+
+def _dumps_array(values, key="_"):
+    arr = [key, {"as": "array"}]
+    for value in values:
+        arr.append(dumps(value, "_"))
+    return arr
+
+
+def _dumps_map(value, key="_"):
+    obj = [key, {"as": "object"}]
+    for key in value.keys():
+        obj.append(dumps(value[key], key))
+    return obj
+
+
+def _dumps_integer(value, key="_"):
+    return [key, {"as": "integer"}, value]
+
+
+def _dumps_float(value, key="_"):
+    return [key, {"as": "float"}, value]
+
+
+def _dumps_complex(value, key="_"):
+    return [key, {"as": "complex"}, value]
+
+
+def _dumps_boolean(value, key="_"):
+    return [key, {"as": "boolean", "value": "true()" if value is True else "false()"}]
+
+
+def _dumps_object(value, key="_"):
+    if hasattr(value, "mu") and callable(getattr(value, "mu")):
+        return [key, {"as": "mu"}, value.mu()]
+    else:
+        return [key, {"as": "null"}]
+
+
+def _dumps_fun(value, key="_"):
+    v = value()
+    if v is None:
+        return [key, {"as": "null"}]
+    else:
+        return [key, {"as": "mu"}, v]
+
+
+def dumps(value, key="_"):
+    """Create a Mu value from a Python value."""
+    typ = type(value)
+    if value is None:
+        return _dumps_none(key)
+    elif typ == int:
+        return _dumps_integer(value, key)
+    elif typ == float:
+        return _dumps_float(value, key)
+    elif typ == complex:
+        return _dumps_complex(value, key)
+    elif typ == str:
+        return _dumps_string(value, key)
+    elif typ == bool:
+        return _dumps_boolean(value, key)
+    elif typ == list or typ == tuple:
+        return _dumps_array(value, key)
+    elif typ == dict:
+        return _dumps_map(value, key)
+    elif callable(value):
+        return _dumps_fun(value, key)
+    elif isinstance(value, object):
+        return _dumps_object(value, key)
+    else:
+        return value

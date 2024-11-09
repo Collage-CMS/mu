@@ -17,7 +17,7 @@ To render a Mu data structure as markup (XML, XHTML or HTML) use the `mu.markup`
 ```python
 import mu
 
-mu.markup(["p", "Hello, ", ["b", "World"], "!"])
+mu.xml(["p", "Hello, ", ["b", "World"], "!"])
 ```
 
 Returns the string `<p>Hello, <b>World</b>!</p>`
@@ -40,15 +40,16 @@ el = ["p", {"id": 1}, "this is a paragraph."]
 You can access the parts of this element node using accessor functions.
 
 ```python
-mu.tag(el)       # "p"
-mu.attrs(el)     # {"id": 1}
-mu.content(el)   # ["this is a paragraph."]
+mu.tag(el)            # "p"
+mu.attrs(el)          # {"id": 1}
+mu.content(el)        # ["this is a paragraph."]
+mu.get_attr("id", el) # 1
 ```
 
 To render this as XML markup:
 
 ```python
-mu.markup(el)    # <p id="1">this is a paragraph.</p>
+mu.xml(el)    # <p id="1">this is a paragraph.</p>
 ```
 
 Use the provided predicate functions to inspect a node.
@@ -73,6 +74,9 @@ mu.markup(["script"], mode="html") # <script></script>
 
 Note that Mu tries to do the correct thing when the markup mode is HTML.
 
+For convenience you can also use `mu.xml()`, `mu.xhtml()`, `mu.html()` or `mu.sgml()` to generate markup for a specific `mode`.
+
+
 ### Special nodes
 
 XML has a few syntactic constructs that you usually don't need. But if you do need them, you can represent them in Mu as follows.
@@ -93,7 +97,7 @@ These will be rendered as:
 <foo/>
 ```
 
-Origami will only convert the above mentioned special nodes correctly. Other tag names that start with `$` are reserved for other applications. The `markup` function will simply drop special nodes that it does not recognize.
+Nodes with tag names that start with `$` are reserved for other applications. The `markup` function will drop special nodes that it does not recognize.
 
 A `$cdata` node will not escape it's content as is usual in XML and HTML. A `$raw` node is very useful for adding string content that already contains markup.
 
@@ -105,8 +109,8 @@ A `$comment` node will ensure that the forbidden `--` is not part of the comment
 Mu does not enforce XML rules. You can use namespaces but you have to provide the namespace declarations as is expected by [XML Namespaces](https://www.w3.org/TR/xml-names).
 
 ```python
-["svg", {"xmlns": "http://www.w3.org/2000/svg"},
-  ["rect", {"width": 200, "height": 100, "x": 10, "y": 10}]
+["svg", dict(xmlns="http://www.w3.org/2000/svg"),
+  ["rect", dict(width=200, height=100, x=10, y=10)]
 ]
 ```
 
@@ -240,6 +244,30 @@ mu.apply(
 
 Note that when object nodes are found they won't get expanded unless they are present in the rules dictionary.
 
+
+## Serializing Python data structures
+
+```python
+mu.dumps(["a",True,3.0])
+```
+
+```python
+mu.loads(['_', {'as': 'array'},
+  ['_', 'a'],
+  ['_', {'as': 'boolean', 'value': 'true()'}],
+  ['_', {'as': 'float'}, 3.0]])
+```
+
+```python
+mu.dumps(dict(a="a",b=True,c=3.0))
+```
+
+```python
+mu.loads(['_', {'as': 'object'},
+  ['a', 'a'],
+  ['b', {'as': 'boolean', 'value': 'true()'}],
+  ['c', {'as': 'float'}, 3.0]])
+```
 
 ## Related work
 
