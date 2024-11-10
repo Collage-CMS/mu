@@ -8,10 +8,6 @@ from mu import Node
 
 class UL(Node):
 
-    def __init__(self, *items):
-        self._content = list(items)
-        self._attrs = {}
-
     def mu(self):
         ul = ["ul"]
         if len(self._attrs) > 0:
@@ -94,4 +90,18 @@ class TestExpand:
                 ["li", "item 2"],
                 ["li", "item 3"],
             ],
+        ]
+
+
+class TestNode:
+
+    def test_node_ctr(self):
+        assert expand(
+            [UL("item 1", "item 2", "item 3", id=123, cls=("foo", "bar"))]
+        ) == [
+            "ul",
+            {"id": 123, "class": ("foo", "bar")},
+            ["li", "item 1"],
+            ["li", "item 2"],
+            ["li", "item 3"],
         ]

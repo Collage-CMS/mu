@@ -49,14 +49,19 @@ class Node:
     """Base class for active markup nodes."""
 
     def __init__(self, *nodes, **attrs) -> None:
+        self._content = []
+        self._attrs = {}
         self.set_content(nodes)
+        # Hack to get around using `class` as kw argument (use `cls` instead)
+        if "cls" in attrs:
+            attrs["class"] = attrs.pop("cls")
         self.set_attrs(attrs)
 
     def set_attrs(self, attrs={}) -> None:
-        self._attrs = attrs
+        self._attrs |= attrs
 
     def set_content(self, nodes=[]) -> None:
-        self._content = nodes
+        self._content.extend(nodes)
 
     def mu(self):
         raise NotImplementedError

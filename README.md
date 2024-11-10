@@ -136,7 +136,7 @@ Object nodes may appear in two positions inside a Mu data structure.
 1) In the content position of an element node (e.g. `["p", {"class": "x"}, obj]`) or,
 2) In the tag position of an element node (e.g. `[obj, {"class": "x"}, "content"]`)
 
-Object nodes have to be derived from the `mu.Node` class and must implement the `mu` method which should generate well-formed Mu data. This method will be called when rendering or expanding the Mu data structure.
+Object nodes can be derived from the `mu.Node` class and must implement the `mu` method which should generate well-formed Mu data. This method will be called when rendering or expanding the Mu data structure.
 
 As an example take the following custom class definition.
 
@@ -173,6 +173,24 @@ mu.xml(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 ```xml
 <div>
   <ol class="foo bar">
+    <li>item 1</li>
+    <li>item 2</li>
+    <li>item 3</li>
+  </ol>
+</div>
+```
+
+You can also provide some initial content and attributes in the object node constructor.
+
+```python
+mu.xml(["div", [OL("item 1", id=1, cls=("foo", "bar")), "item 2", "item 3"]])
+```
+
+Note that we cannot use the reserved `class` keyword, instead use `cls` to get a `class` attribute. It is a bit of a hack.
+
+```xml
+<div>
+  <ol class="foo bar" id="1">
     <li>item 1</li>
     <li>item 2</li>
     <li>item 3</li>
