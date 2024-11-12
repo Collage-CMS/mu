@@ -51,23 +51,30 @@ class Node:
     def __init__(self, *nodes, **attrs) -> None:
         self._content = []
         self._attrs = {}
-        self.set_content(nodes)
+        self.replace(nodes)
         # Hack to get around using `class` as kw argument (use `cls` instead)
         if "cls" in attrs:
             attrs["class"] = attrs.pop("cls")
         self.set_attrs(attrs)
 
+    def set_attr(self, name, value=None) -> None:
+        self._attrs[name] = value
+
     def set_attrs(self, attrs={}) -> None:
         self._attrs |= attrs
 
-    def set_content(self, nodes=[]) -> None:
+    def replace(self, nodes=[]) -> None:
+        self._content = []
+        self._content.extend(nodes)
+
+    def append(self, nodes=[]) -> None:
         self._content.extend(nodes)
 
     def mu(self):
         raise NotImplementedError
 
     def xml(self, mode=Mode.XML) -> str:
-        return markup(self.mu())
+        return markup(self.mu(), mode=mode)
 
 
 def _is_element(value) -> bool:
@@ -188,6 +195,13 @@ def _convert_node(node, mode: Mode = Mode.XML):
     elif _is_sequence(node):
         yield from _convert_sequence(node, mode)
     elif _is_active_node(node):
+        # drop content of this node to get handled by active node
+        _attrs = attrs(node)
+        _content = content(node)
+        if _attrs is not None:
+            node.set_attrs(_attrs)
+        if _content is not None:
+            node.append(_content)
         yield node.xml(mode)
     else:
         yield from _convert_atomic(node, mode)
@@ -246,7 +260,7 @@ def _convert_active_element(node, mode: Mode = Mode.XML):
     # and then generates xml
     node_obj = tag(node)
     node_obj.set_attrs(attrs(node))
-    node_obj.set_content(content(node))
+    node_obj.append(content(node))
     yield node_obj.xml(mode)
 
 
@@ -285,7 +299,7 @@ def _expand_nodes(node):
         if _is_active_element(node):
             if len(node_attrs) > 0:
                 node_tag.set_attrs(node_attrs)
-            node_tag.set_content(node_content)
+            node_tag.append(node_content)
             return node_tag.mu()
         else:
             mu = [node_tag]
@@ -316,7 +330,7 @@ def _apply_nodes(node, rules: dict):
                 rule = rules[node_tag]
                 if len(node_attrs) > 0:
                     rule.set_attrs(node_attrs)
-                rule.set_content(node_content)
+                rule.append(node_content)
                 return rule.mu()
             else:
                 return rules[node_tag]
@@ -377,36 +391,6 @@ def markup(*nodes, mode: Mode = Mode.XML):
     for node in nodes:
         output.extend(_convert_node(node, mode))
     return "".join(output)
-
-
-# experimental
-
-
-def from_dict(py_value, parent=None):
-    """Create a MU value from the Python value."""
-    typ = type(py_value)
-    if typ == int:
-        return py_value
-    elif py_value is None:
-        return ""
-    elif typ == float:
-        return py_value
-    elif typ == str:
-        return py_value
-    elif typ == bool:
-        if py_value:
-            return "true"
-        else:
-            return "false"
-    elif typ == list:
-        return [["li", from_dict(node)] for node in py_value]
-    elif typ == dict:
-        mu = ["object"] if parent is None else []
-        for key in py_value:
-            mu.append([key, from_dict(py_value[key], parent=key)])
-        return mu
-    else:
-        print(f"Unhandled type: {type(py_value)}")
 
 
 # syntax sugar for markup modes

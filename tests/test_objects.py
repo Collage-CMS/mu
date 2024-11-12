@@ -4,16 +4,15 @@ from mu import apply
 from mu import expand
 from mu import markup
 from mu import Node
+from mu import xml
 
 
 class UL(Node):
 
     def mu(self):
         ul = ["ul"]
-        if len(self._attrs) > 0:
-            ul.append(self._attrs)
-        for item in self._content:
-            ul.append(["li", item])
+        len(self._attrs) > 0 and ul.append(self._attrs)
+        ul.extend([["li", node] for node in self._content])
         return ul
 
 
@@ -95,7 +94,7 @@ class TestExpand:
 
 class TestNode:
 
-    def test_node_ctr(self):
+    def test_node_ctr_to_mu(self):
         assert expand(
             [UL("item 1", "item 2", "item 3", id=123, cls=("foo", "bar"))]
         ) == [
@@ -105,3 +104,9 @@ class TestNode:
             ["li", "item 2"],
             ["li", "item 3"],
         ]
+
+    def test_node_ctr_to_xml(self):
+        assert (
+            xml([UL("item 1", "item 2", "item 3", id=123, cls=("foo", "bar"))])
+            == '<ul class="foo bar" id="123"><li>item 1</li><li>item 2</li><li>item 3</li></ul>'  # noqa
+        )
