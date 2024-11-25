@@ -18,7 +18,7 @@ class OL(mu.Node):
         return ol
 
     def xml(self):
-        return mu.markup(self.mu())
+        return mu._markup(self.mu())
 
 
 class TestExpand:

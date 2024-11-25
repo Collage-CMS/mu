@@ -1,6 +1,8 @@
 {
     "jupyter.notebookFileRoot": "${workspaceFolder}",
-    "python.testing.pytestArgs": [],
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.unittestArgs": [
@@ -10,7 +12,7 @@
         "-p",
         "test_*.py"
     ],
-    "black-formatter.args": [ "--line-length", "88", "--target-version", "py310"],
+    "black-formatter.args": [ "--line-length", 88, "--target-version", "py310"],
     "flake8.args": [ "--config", "setup.cfg" ],
     "yaml.customTags": ["!dox/context mapping", "!dox mapping", "!dox/html5 mapping", "!dox/xhtml mapping", "!dox/xml mapping", "!attrs mapping"]
 }

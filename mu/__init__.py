@@ -8,39 +8,15 @@
 #
 from __future__ import annotations
 
-from enum import auto
-from enum import Enum
+from typing import Dict
+from typing import List
 
 import mu.util as util
 
 
-class Mode(Enum):
-    XML = auto()
-    XHTML = auto()
-    HTML = auto()
-    SGML = auto()
+ERR_NOT_ELEMENT_NODE = ValueError("Not an element node.")
 
-
-VOID_TAGS: frozenset[str] = frozenset(
-    {
-        "area",
-        "base",
-        "br",
-        "col",
-        "command",
-        "embed",
-        "hr",
-        "img",
-        "input",
-        "keygen",
-        "link",
-        "meta",
-        "param",
-        "source",
-        "track",
-        "wbr",
-    }
-)
+ATOMIC_VALUE = set([int, str, float, complex, bool, str])
 
 SPECIAL_NODES: frozenset[str] = frozenset({"$raw", "$comment", "$cdata", "$pi"})
 
@@ -49,8 +25,8 @@ class Node:
     """Base class for active markup nodes."""
 
     def __init__(self, *nodes, **attrs) -> None:
-        self._content = []
-        self._attrs = {}
+        self._content: List = []
+        self._attrs: Dict = {}
         self.replace(nodes)
         # Hack to get around using `class` as kw argument (use `cls` instead)
         if "cls" in attrs:
@@ -73,8 +49,117 @@ class Node:
     def mu(self):
         raise NotImplementedError
 
-    def xml(self, mode=Mode.XML) -> str:
-        return markup(self.mu(), mode=mode)
+
+class Serializer(object):
+
+    def write(self, *nodes):
+        return "".join(self._ser_sequence(nodes))
+
+
+class XmlSerializer(Serializer):
+
+    def _ser_node(self, node):
+
+        if _is_element(node):
+            yield from self._ser_element(node)
+        elif _is_sequence(node):
+            yield from self._ser_sequence(node)
+        elif _is_active_node(node):
+            # drop content of this node to get handled by active node
+            _attrs = attrs(node)
+            _content = content(node)
+            if _attrs is not None:
+                node.set_attrs(_attrs)
+            if _content is not None:
+                # given content gets appended
+                node.append(_content)
+            yield self._ser_node(_expand_nodes(node.mu()))
+        else:
+            yield from self._ser_atomic(node)
+
+    def _ser_element(self, node):
+        if _is_active_element(node):
+            yield from self._ser_active_element(node)
+        elif _is_special_node(node):
+            yield self._ser_special_node(node)
+        elif _is_empty_node(node):
+            yield from self._ser_empty_node(node)
+        else:  # content to process
+            yield from self._ser_content_node(node)
+
+    def _start_tag(self, node, close: bool = False):
+        node_tag = tag(node)
+        if close is True:
+            return f"<{node_tag}{self._ser_attrs(node)}/>"
+        else:
+            return f"<{node_tag}{self._ser_attrs(node)}>"
+
+    def _ser_content_node(self, node):
+        yield self._start_tag(node, close=False)
+        for child in content(node):
+            if isinstance(child, tuple):
+                for x in child:
+                    for y in self._ser_node(x):
+                        yield y
+            else:
+                for x in self._ser_node(child):
+                    yield x
+        yield f"</{tag(node)}>"
+
+    def _ser_empty_node(self, node):
+        yield self._start_tag(node, close=True)
+
+    def _ser_active_element(self, node: Node):
+        # active element, receives attributes and content
+        # and then generates xml
+        node_obj = tag_obj(node)
+        node_obj.set_attrs(attrs(node))
+        node_obj.append(content(node))
+        yield self._ser_node(node_obj.mu())
+
+    def _ser_sequence(self, node):
+        # a sequence, list would imply a malformed element
+        for x in node:
+            for y in self._ser_node(x):
+                yield y
+
+    def _ser_atomic(self, node):
+        if node:
+            if _is_active_element(node):
+                yield self._ser_node(tag(node).mu())
+            else:
+                yield str(node)
+        else:
+            pass
+
+    def _ser_attrs(self, node) -> str:
+        node_attrs = attrs(node)
+        output = []
+        for name, value in sorted(node_attrs.items()):
+            if value is None:
+                pass
+            elif isinstance(value, bool):
+                if value:
+                    output.append(f' {name}="{name}"')
+            elif isinstance(value, (list, tuple)):
+                output.append(
+                    f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"'  # noqa
+                )
+            else:
+                output.append(f' {name}="{util.escape_html(value)}"')
+        return "".join(output)
+
+    def _ser_special_node(self, node: list) -> str:
+        if tag(node) == "$raw":
+            return "".join(node[1:])
+        elif tag(node) == "$comment":
+            return f'<!-- {"".join(node[1:])} -->'
+        elif tag(node) == "$cdata":
+            return f'<![CDATA[{"".join(node[1:])}]]>'
+        elif tag(node) == "$pi":
+            return f'<?{"".join(node[1:])}?>'
+        else:
+            return ""
 
 
 def _is_element(value) -> bool:
@@ -119,9 +204,20 @@ def get_attr(name, node, default=None):
 # Accessor functions
 
 
-def tag(node):
-    """The tag (node name) of the element or None."""
-    return node[0] if _is_element(node) else None
+def tag(node) -> str:
+    """The tag string of the element."""
+    if _is_element(node):
+        return node[0]
+    else:
+        raise ERR_NOT_ELEMENT_NODE
+
+
+def tag_obj(node) -> Node:
+    """The tag object of the element."""
+    if _is_element(node):
+        return node[0]
+    else:
+        raise ERR_NOT_ELEMENT_NODE
 
 
 def attrs(node) -> dict:
@@ -133,7 +229,7 @@ def attrs(node) -> dict:
         else:
             return {}
     else:
-        return None
+        raise ERR_NOT_ELEMENT_NODE
 
 
 def content(node) -> list:
@@ -142,39 +238,6 @@ def content(node) -> list:
         return [x for x in children if x is not None]
     else:
         return []
-
-
-def _format_attrs(attrs: dict, mode: Mode = Mode.XML) -> str:
-
-    output = []
-    for name, value in sorted(attrs.items()):
-        if value is None:
-            pass
-        elif isinstance(value, bool):
-            if value and Mode.SGML:
-                output.append(f" {name}")
-            elif value:
-                output.append(f' {name}="{name}"')
-        elif isinstance(value, (list, tuple)):
-            output.append(
-                f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"'  # noqa
-            )
-        else:
-            output.append(f' {name}="{util.escape_html(value)}"')
-    return "".join(output)
-
-
-def _format_special_node(node, mode: Mode = Mode.XML):
-    if tag(node) == "$raw":
-        return "".join(node[1:])
-    elif tag(node) == "$comment":
-        return f'<!-- {"".join(node[1:])} -->'
-    elif tag(node) == "$cdata":
-        return f'<![CDATA[{"".join(node[1:])}]]>'
-    elif tag(node) == "$pi":
-        return f'<?{"".join(node[1:])}?>'
-    else:
-        return ""
 
 
 def _is_active_node(node) -> bool:
@@ -188,107 +251,12 @@ def _is_active_element(node) -> bool:
         return _is_active_node(node)
 
 
-def _convert_node(node, mode: Mode = Mode.XML):
-
-    if _is_element(node):
-        yield from _convert_element(node, mode)
-    elif _is_sequence(node):
-        yield from _convert_sequence(node, mode)
-    elif _is_active_node(node):
-        # drop content of this node to get handled by active node
-        _attrs = attrs(node)
-        _content = content(node)
-        if _attrs is not None:
-            node.set_attrs(_attrs)
-        if _content is not None:
-            node.append(_content)
-        yield node.xml(mode)
-    else:
-        yield from _convert_atomic(node, mode)
-
-
 def _is_sequence(node) -> bool:
     return isinstance(node, list | tuple)
 
 
-def _convert_element(node, mode: Mode = Mode.XML):
-    if _is_active_element(node):
-        yield from _convert_active_element(node, mode)
-    elif _is_special_node(node):
-        yield _format_special_node(node, mode)
-    elif _is_empty_node(node):
-        yield from _format_empty_node(node, mode)
-    else:  # content to process
-        yield from _format_content_node(node, mode)
-
-
-def _format_content_node(node, mode: Mode = Mode.XML):
-    node_tag = tag(node)
-    node_attrs = attrs(node)
-    node_attrs_xml = _format_attrs(node_attrs)
-    node_content = content(node)
-    yield f"<{node_tag}{node_attrs_xml}>"
-    for child in node_content:
-        if isinstance(child, tuple):
-            for x in child:
-                for y in _convert_node(x, mode):
-                    yield y
-        else:
-            for x in _convert_node(child, mode):
-                yield x
-    yield f"</{node_tag}>"
-
-
-def _format_empty_node(node, mode: Mode = Mode.XML):
-    node_tag = tag(node)
-    node_attrs = attrs(node)
-    node_attrs_xml = _format_attrs(node_attrs)
-    if node_tag in VOID_TAGS and mode in {Mode.HTML, Mode.XHTML}:
-        yield f"<{node_tag}{node_attrs_xml}{_end_tag(mode)}"
-    elif mode in {Mode.XML, Mode.SGML}:
-        yield f"<{node_tag}{node_attrs_xml}{_end_tag(mode)}"
-    else:
-        yield f"<{node_tag}{node_attrs_xml}></{node_tag}>"
-
-
 def _is_empty_node(node) -> bool:
     return len(content(node)) == 0
-
-
-def _convert_active_element(node, mode: Mode = Mode.XML):
-    # active element, receives attributes and content
-    # and then generates xml
-    node_obj = tag(node)
-    node_obj.set_attrs(attrs(node))
-    node_obj.append(content(node))
-    yield node_obj.xml(mode)
-
-
-def _convert_sequence(node, mode: Mode = Mode.XML):
-    # a sequence, list would imply a malformed element
-    for x in node:
-        for y in _convert_node(x, mode):
-            yield y
-
-
-def _convert_atomic(node, mode: Mode = Mode.XML):
-    if node:
-        if _is_active_element(node):
-            yield tag(node).xml(mode)
-        else:
-            yield str(node)
-    else:
-        pass
-
-
-# mode: html, xhtml, xml, sgml (default xml)
-def _end_tag(mode):
-    if mode == Mode.XML:
-        return "/>"
-    elif mode == Mode.XHTML:
-        return " />"
-    else:
-        return ">"
 
 
 def _expand_nodes(node):
@@ -337,7 +305,7 @@ def _apply_nodes(node, rules: dict):
         else:
             mu = [node_tag]
             if len(node_attrs) > 0:
-                mu.append(node_attrs)
+                mu.extend(node_attrs)
             mu.extend([_apply_nodes(child, rules) for child in node_content])
             return mu
     elif isinstance(node, (list, tuple)):
@@ -373,12 +341,11 @@ def apply(nodes, rules: dict):
     return _apply_nodes(nodes, rules)
 
 
-def markup(*nodes, mode: Mode = Mode.XML):
+def _markup(*nodes, serializer: Serializer):
     """Convert Mu datastructure(s) into a markup string.
 
     Args:
         *nodes: One or more Mu nodes to convert
-        mode: Output mode, one of: "xml", "sgml", "html", "xhtml"
 
     Returns:
         A string containing the markup representation
@@ -387,32 +354,11 @@ def markup(*nodes, mode: Mode = Mode.XML):
         >>> markup(["div", {"class": "content"}, "Hello"])
         '<div class="content">Hello</div>'
     """
-    output = []
-    for node in nodes:
-        output.extend(_convert_node(node, mode))
-    return "".join(output)
-
-
-# syntax sugar for markup modes
-
-
-def html(*nodes):
-    return markup(*nodes, mode=Mode.HTML)
-
-
-def xhtml(*nodes):
-    return markup(*nodes, mode=Mode.XHTML)
-
-
-def sgml(*nodes):
-    return markup(*nodes, mode=Mode.SGML)
+    return serializer.write(*nodes)
 
 
 def xml(*nodes):
-    return markup(*nodes, mode=Mode.XML)
-
-
-ATOMIC_VALUE = set([int, str, float, complex, bool, str])
+    return _markup(*nodes, serializer=XmlSerializer())
 
 
 def _loads_content(nodes):

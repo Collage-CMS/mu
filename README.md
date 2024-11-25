@@ -322,6 +322,17 @@ mu.loads(['_', {'as': 'object'},
 
 When `dumps()` encounters a Python object it will call it's `mu()` method if it exists otherwise it will not be part of the serialized result. A function object will be called and it's return value becomes part of the serialized result.
 
+## Develop
+
+!TODO
+
+Run `mypy` type checking.
+
+```
+pip install mypy
+mypy --config-file pyproject.toml ./
+```
+
 
 ## Related work
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from mu import _markup
 from mu import apply
 from mu import expand
-from mu import markup
 from mu import Node
 from mu import xml
 
@@ -19,41 +19,42 @@ class UL(Node):
 class TestMuContentWithNulls:
 
     def test_nulls_in_content(self):
-        assert markup(["xml", {}]) == "<xml/>"
-        assert markup(["xml", None, None]) == "<xml/>"
-        assert markup(["xml", None, 1, None, 2]) == "<xml>12</xml>"
+        assert _markup(["xml", {}]) == "<xml/>"
+        assert _markup(["xml", None, None]) == "<xml/>"
+        assert _markup(["xml", None, 1, None, 2]) == "<xml>12</xml>"
 
 
 class TestMuContentList:
 
     def test_simple_seq_with_list_content(self):
-        assert markup(["foo", (1, 2, 3)]) == "<foo>123</foo>"
-        assert markup(["foo", "a", "b"]) == "<foo>ab</foo>"
-        assert markup(["foo", ("a", "b")]) == "<foo>ab</foo>"
-        assert markup(["foo", ("a", ("b"))]) == "<foo>ab</foo>"
-        assert markup(["foo", [(1), "b"]]) == "<foo>1b</foo>"
-        assert markup(["foo", [("a"), ("b"), "c"]]) == "<foo><a>bc</a></foo>"
+        assert _markup(["foo", (1, 2, 3)]) == "<foo>123</foo>"
+        assert _markup(["foo", "a", "b"]) == "<foo>ab</foo>"
+        assert _markup(["foo", ("a", "b")]) == "<foo>ab</foo>"
+        assert _markup(["foo", ("a", ("b"))]) == "<foo>ab</foo>"
+        assert _markup(["foo", [(1), "b"]]) == "<foo>1b</foo>"
+        assert _markup(["foo", [("a"), ("b"), "c"]]) == "<foo><a>bc</a></foo>"
 
 
 class TestMuObjects:
 
     def testMuObject(self):
         assert (
-            markup(["foo", UL(1, 2, 3)])
+            _markup(["foo", UL(1, 2, 3)])
             == "<foo><ul><li>1</li><li>2</li><li>3</li></ul></foo>"
         )
 
     def testMuObjectElement(self):
         assert (
-            markup(["foo", [UL(), 1, 2, 3]])
+            _markup(["foo", [UL(), 1, 2, 3]])
             == "<foo><ul><li>1</li><li>2</li><li>3</li></ul></foo>"
         )
-        assert markup(["foo", [UL(), (1, 2, 3)]]) == "<foo><ul><li>123</li></ul></foo>"
+        assert _markup(["foo", [UL(), (1, 2, 3)]]) == "<foo><ul><li>123</li></ul></foo>"
         assert (
-            markup(["foo", [UL(), {}, (1, 2, 3)]]) == "<foo><ul><li>123</li></ul></foo>"
+            _markup(["foo", [UL(), {}, (1, 2, 3)]])
+            == "<foo><ul><li>123</li></ul></foo>"
         )
         assert (
-            markup(["foo", [UL(), {"class": ("foo", "bar")}, 1, 2]])
+            _markup(["foo", [UL(), {"class": ("foo", "bar")}, 1, 2]])
             == '<foo><ul class="foo bar"><li>1</li><li>2</li></ul></foo>'
         )
 

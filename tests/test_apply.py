@@ -18,7 +18,7 @@ class UL(mu.Node):
         return ol
 
     def xml(self):
-        return mu.markup(self.mu())
+        return mu.xml(self.mu())
 
 
 class TestApply:
