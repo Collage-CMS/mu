@@ -1,13 +1,13 @@
 # Mu
 
-Represent HTML and XML using Python data structures. This does for Python what the [Hiccup](https://github.com/weavejester/hiccup) library by James Reeves did for the Clojure language.
+Represent XML using Python data structures. This does for Python what the [Hiccup](https://github.com/weavejester/hiccup) library by James Reeves did for the Clojure language.
 
 Warning: this library is still alpha. So expect breaking changes.
 
 
 ## Usage
 
-To render a Mu data structure as markup (XML, XHTML or HTML) use the `mu.markup` function.
+To render a Mu data structure as XML markup use the `mu.xml()` function.
 
 ```python
 import mu
@@ -22,9 +22,9 @@ Note that serializing to a string will not guarantee well-formed XML.
 
 ## Documentation
 
-In XML or related markup (XHTML, HTML, SGML) a data structure is made up of various node types such as element, attribute, or text nodes.
+XML is a tree data structure made up of various node types such as element, attribute, or text nodes.
 
-However, writing markup in code is tedious and error-prone. Mu allows creating well-formed markup with Python code and basic Python data structures.
+However, writing markup in code is tedious and error-prone. Mu allows creating markup with Python code and basic Python data structures.
 
 ### Element nodes
 
@@ -58,21 +58,6 @@ mu.is_empty(el)         # does it have child nodes?
 mu.has_attrs(el)        # does it have attributes?
 ```
 
-### Render markup
-
-The `mu.markup` function may have a keyword argument that specifies the type of markup generated. Although XML, XHTML, HTML look very similar there are some slight differences mainly to how empty elements are rendered.
-
-```python
-mu.markup(["img"], mode="xml")     # <img/>
-mu.markup(["img"], mode="xhtml")   # <img />
-mu.markup(["img"], mode="html")    # <img>
-mu.markup(["script"], mode="html") # <script></script>
-```
-
-Note that Mu tries to do the correct thing when the markup mode is HTML.
-
-For convenience you can also use `mu.xml()`, `mu.xhtml()`, `mu.html()` or `mu.sgml()` to generate markup for a specific `mode`.
-
 
 ### Special nodes
 
@@ -94,7 +79,7 @@ These will be rendered as:
 <foo/>
 ```
 
-Nodes with tag names that start with `$` are reserved for other applications. The `markup` function will drop special nodes that it does not recognize.
+Nodes with tag names that start with `$` are reserved for other applications. The `xml()` function will drop special nodes that it does not recognize.
 
 A `$cdata` node will not escape it's content as is usual in XML and HTML. A `$raw` node is very useful for adding string content that already contains markup.
 
@@ -323,8 +308,6 @@ mu.loads(['_', {'as': 'object'},
 When `dumps()` encounters a Python object it will call it's `mu()` method if it exists otherwise it will not be part of the serialized result. A function object will be called and it's return value becomes part of the serialized result.
 
 ## Develop
-
-!TODO
 
 Run `mypy` type checking.
 
