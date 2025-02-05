@@ -7,12 +7,12 @@ Warning: this library is still alpha. So expect breaking changes.
 
 ## Usage
 
-To render a Mu data structure as XML markup use the `mu.xml()` function.
+To render a Mu data structure as XML markup use the `xml` function.
 
 ```python
-import mu
+from mu import xml
 
-mu.xml(["p", "Hello, ", ["b", "World"], "!"])
+xml(["p", "Hello, ", ["b", "World"], "!"])
 ```
 
 Returns the string `<p>Hello, <b>World</b>!</p>`
@@ -34,9 +34,11 @@ An element node is made up of a tag, an optional attribute dictionary and zero o
 el = ["p", {"id": 1}, "this is a paragraph."]
 ```
 
-You can access the parts of this element node using accessor functions.
+You can access the individual parts of an element node using the following accessor functions.
 
 ```python
+import mu
+
 mu.tag(el)            # "p"
 mu.attrs(el)          # {"id": 1}
 mu.content(el)        # ["this is a paragraph."]
@@ -46,12 +48,16 @@ mu.get_attr("id", el) # 1
 To render this as XML markup:
 
 ```python
-mu.xml(el)    # <p id="1">this is a paragraph.</p>
+from mu import xml
+
+xml(el)    # <p id="1">this is a paragraph.</p>
 ```
 
 Use the provided predicate functions to inspect a node.
 
 ```python
+import mu
+
 mu.is_element(el)       # is this a valid element node?
 mu.is_special_node(el)  # is this a special node? (see below)
 mu.is_empty(el)         # does it have child nodes?
@@ -128,6 +134,9 @@ Object nodes can be derived from the `mu.Node` class and must implement the `mu`
 As an example take the following custom class definition.
 
 ```python
+import mu
+from mu import xml
+
 class OL(mu.Node):
 
     def mu(self):
@@ -142,7 +151,7 @@ class OL(mu.Node):
 Let's use this class in a Mu data structure.
 
 ```python
-mu.xml(["div", OL(), "foo"])
+xml(["div", OL(), "foo"])
 ```
 
 ```xml
@@ -154,7 +163,7 @@ Here the `OL()` object is in the content position so no information is passed to
 To produce a list the object must be in the tag position of an element node.
 
 ```python
-mu.xml(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
+xml(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 ```
 
 ```xml
@@ -170,7 +179,7 @@ mu.xml(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 You can also provide some initial content and attributes in the object node constructor.
 
 ```python
-mu.xml(["div", [OL("item 1", id=1, cls=("foo", "bar")), "item 2", "item 3"]])
+xml(["div", [OL("item 1", id=1, cls=("foo", "bar")), "item 2", "item 3"]])
 ```
 
 Note that we cannot use the reserved `class` keyword, instead use `cls` to get a `class` attribute. It is a bit of a hack.
@@ -190,7 +199,9 @@ Note that we cannot use the reserved `class` keyword, instead use `cls` to get a
 In some cases you may want to use the `mu.expand` function to only expand object nodes to a straightforward data structure.
 
 ```python
-mu.expand(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
+from mu import expand
+
+expand(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 ```
 
 ```python
@@ -210,7 +221,9 @@ Using the previous example of the `UL` object we can illustrate how `my.apply` w
 Say we have a Mu data structure in which we want to replace each `foo` element with an unordered list node object.
 
 ```python
-mu.apply(
+from mu import apply
+
+apply(
   ["doc", ["foo", {"class": "x"}, "item 1", "item 2"]],
   {"foo": OL()})
 ```
@@ -223,7 +236,7 @@ mu.apply(
 You can also pass in literal values that get replaced when the element name matches a rule.
 
 ```python
-mu.apply(
+apply(
   ["doc", ["$foo"], ["bar"], ["$foo"]],
   {"$foo": ["BAR"]})
 ```

@@ -162,6 +162,18 @@ class XmlSerializer(Serializer):
             return ""
 
 
+class HtmlSerializer(XmlSerializer):
+    pass
+
+
+class XhtmlSerializer(XmlSerializer):
+    pass
+
+
+class SgmlSerializer(XmlSerializer):
+    pass
+
+
 def _is_element(value) -> bool:
     return (
         isinstance(value, list) and len(value) > 0 and isinstance(value[0], (str, Node))
@@ -358,7 +370,23 @@ def _markup(*nodes, serializer: Serializer):
 
 
 def xml(*nodes):
+    """Render Mu as an XML formatted string."""
     return _markup(*nodes, serializer=XmlSerializer())
+
+
+def html(*nodes):
+    """Render Mu as an XML formatted string."""
+    return _markup(*nodes, serializer=HtmlSerializer())
+
+
+def xhtml(*nodes):
+    """Render Mu as an XML formatted string."""
+    return _markup(*nodes, serializer=XhtmlSerializer())
+
+
+def sgml(*nodes):
+    """Render Mu as an XML formatted string."""
+    return _markup(*nodes, serializer=SgmlSerializer())
 
 
 def _loads_content(nodes):
