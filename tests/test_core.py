@@ -3,6 +3,12 @@ from __future__ import annotations
 import pytest
 
 import mu
+from mu import html
+from mu import xml
+
+# from mu import sgml
+# from mu import xhtml
+
 
 # TODO Add functions to manipulate Mu structures.
 # TODO Add namespaces and generate well-formed XML (or auto-gen at top)
@@ -24,6 +30,20 @@ class OL(mu.Node):
 
     def xml(self):
         return mu._markup(self.mu())
+
+
+class TestTagNames:
+
+    def test_basic_tags(self):
+
+        assert xml(["div"]) == "<div/>"
+
+    def test_tag_syntax_sugar(self):
+        assert html(["div#foo"]) == '<div id="foo"/>'
+        assert html(["div.foo"]) == '<div class="foo"/>'
+        assert html(["div.foo", "bar", "baz"]) == '<div class="foo">barbaz</div>'
+        assert html(["div.a.b"]) == '<div class="a b"/>'
+        assert html(["div#foo.bar.baz"]) == '<div class="bar baz" id="foo"/>'
 
 
 class TestAccessors:

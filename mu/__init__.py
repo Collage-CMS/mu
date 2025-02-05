@@ -8,6 +8,7 @@
 #
 from __future__ import annotations
 
+import re
 from typing import Dict
 from typing import List
 
@@ -50,6 +51,64 @@ class Node:
         raise NotImplementedError
 
 
+class XmlNames(object):
+
+    def transform(self, node: list) -> list:
+        return node
+
+
+class HtmlNames(object):
+
+    def transform(self, node: list) -> list:
+        if _is_element(node):
+            if self._is_sugared_name(node[0]):
+                tag = self._sugar_name(node[0])
+                attributes = self._sugar_attrs(node[0])
+                for name, value in attrs(node).items():
+                    if "id" in attributes and name == "id":
+                        pass
+                    elif "class" in attributes and name == "class":
+                        if isinstance(value, list):
+                            attributes["class"].extend(value)
+                        else:
+                            attributes["class"].append(value)
+                    else:
+                        attributes[name] = value
+                child_nodes = content(node)
+                unsugared_node = [tag]
+                if len(attributes) > 0:
+                    unsugared_node.append(attributes)
+                if len(child_nodes) > 0:
+                    unsugared_node.extend(child_nodes)
+                return unsugared_node
+            else:
+                return node
+        else:
+            return node
+
+    def _is_sugared_name(self, tag: str):
+        return "#" in tag or "." in tag
+
+    def _sugar_name(self, tag: str):
+        name = re.split(r"[#.]", tag)[0]
+        return name
+
+    def _sugar_attrs(self, tag: str):
+        id = []
+        cls = []
+        for part in re.findall("[#.][^#.]+", tag):
+            if part.startswith("#"):
+                id.append(part[1:])
+            elif part.startswith("."):
+                cls.append(part[1:])
+        attrs = {}
+        if id:
+            attrs["id"] = id[0]
+        if cls:
+            attrs["class"] = cls
+        return attrs
+
+
 class Serializer(object):
 
     def write(self, *nodes):
@@ -57,6 +116,9 @@ class Serializer(object):
 
 
 class XmlSerializer(Serializer):
+
+    def __init__(self):
+        self._names = XmlNames()
 
     def _ser_node(self, node):
 
@@ -82,10 +144,12 @@ class XmlSerializer(Serializer):
             yield from self._ser_active_element(node)
         elif _is_special_node(node):
             yield self._ser_special_node(node)
-        elif _is_empty_node(node):
-            yield from self._ser_empty_node(node)
-        else:  # content to process
-            yield from self._ser_content_node(node)
+        else:
+            node = self._names.transform(node)
+            if _is_empty_node(node):
+                yield from self._ser_empty_node(node)
+            else:  # content to process
+                yield from self._ser_content_node(node)
 
     def _start_tag(self, node, close: bool = False):
         node_tag = tag(node)
@@ -163,7 +227,9 @@ class XmlSerializer(Serializer):
 
 
 class HtmlSerializer(XmlSerializer):
-    pass
+
+    def __init__(self):
+        self._names = HtmlNames()
 
 
 class XhtmlSerializer(XmlSerializer):
@@ -317,7 +383,7 @@ def _apply_nodes(node, rules: dict):
         else:
             mu = [node_tag]
             if len(node_attrs) > 0:
-                mu.extend(node_attrs)
+                mu.append(node_attrs)
             mu.extend([_apply_nodes(child, rules) for child in node_content])
             return mu
     elif isinstance(node, (list, tuple)):
