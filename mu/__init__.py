@@ -37,14 +37,14 @@ class Node:
     def set_attr(self, name, value=None) -> None:
         self._attrs[name] = value
 
-    def set_attrs(self, attrs={}) -> None:
+    def set_attrs(self, attrs: dict) -> None:
         self._attrs |= attrs
 
-    def replace(self, nodes=[]) -> None:
-        self._content = []
+    def replace(self, nodes: list) -> None:
+        self._content = nodes
         self._content.extend(nodes)
 
-    def append(self, nodes=[]) -> None:
+    def append(self, nodes: list) -> None:
         self._content.extend(nodes)
 
     def mu(self):
@@ -52,13 +52,11 @@ class Node:
 
 
 class XmlNames(object):
-
     def transform(self, node: list) -> list:
         return node
 
 
 class HtmlNames(object):
-
     def transform(self, node: list) -> list:
         if _is_element(node):
             if self._is_sugared_name(node[0]):
@@ -110,18 +108,15 @@ class HtmlNames(object):
 
 
 class Serializer(object):
-
     def write(self, *nodes):
         return "".join(self._ser_sequence(nodes))
 
 
 class XmlSerializer(Serializer):
-
     def __init__(self):
         self._names = XmlNames()
 
     def _ser_node(self, node):
-
         if _is_element(node):
             yield from self._ser_element(node)
         elif _is_sequence(node):
@@ -217,17 +212,16 @@ class XmlSerializer(Serializer):
         if tag(node) == "$raw":
             return "".join(node[1:])
         elif tag(node) == "$comment":
-            return f'<!-- {"".join(node[1:])} -->'
+            return f"<!-- {''.join(node[1:])} -->"
         elif tag(node) == "$cdata":
-            return f'<![CDATA[{"".join(node[1:])}]]>'
+            return f"<![CDATA[{''.join(node[1:])}]]>"
         elif tag(node) == "$pi":
-            return f'<?{"".join(node[1:])}?>'
+            return f"<?{''.join(node[1:])}?>"
         else:
             return ""
 
 
 class HtmlSerializer(XmlSerializer):
-
     def __init__(self):
         self._names = HtmlNames()
 
@@ -319,7 +313,7 @@ def content(node) -> list:
 
 
 def _is_active_node(node) -> bool:
-    return hasattr(node, "xml") and callable(getattr(node, "xml"))
+    return hasattr(node, "xml") and callable(node.xml)
 
 
 def _is_active_element(node) -> bool:
@@ -381,7 +375,7 @@ def _apply_nodes(node, rules: dict):
             else:
                 return rules[node_tag]
         else:
-            mu = [node_tag]
+            mu: list = [node_tag]
             if len(node_attrs) > 0:
                 mu.append(node_attrs)
             mu.extend([_apply_nodes(child, rules) for child in node_content])
@@ -477,7 +471,7 @@ def loads(node):
     typ = type(node)
     if typ in ATOMIC_VALUE or node is None:
         return node
-    elif typ == list:
+    elif typ is list:
         if _is_element(node):
             node_typ = get_attr("as", node, "string")
             if node_typ == "object":
@@ -512,7 +506,7 @@ def loads(node):
             for i in node:
                 li.append(loads(i))
             return li
-    elif typ == dict:
+    elif typ is dict:
         # dicts in mu are attributes so only used for control
         pass
     else:
@@ -558,7 +552,7 @@ def _dumps_boolean(value, key="_"):
 
 
 def _dumps_object(value, key="_"):
-    if hasattr(value, "mu") and callable(getattr(value, "mu")):
+    if hasattr(value, "mu") and callable(value.mu):
         return [key, {"as": "mu"}, value.mu()]
     else:
         return [key, {"as": "null"}]
@@ -577,19 +571,19 @@ def dumps(value, key="_"):
     typ = type(value)
     if value is None:
         return _dumps_none(key)
-    elif typ == int:
+    elif typ is int:
         return _dumps_integer(value, key)
-    elif typ == float:
+    elif typ is float:
         return _dumps_float(value, key)
-    elif typ == complex:
+    elif typ is complex:
         return _dumps_complex(value, key)
-    elif typ == str:
+    elif typ is str:
         return _dumps_string(value, key)
-    elif typ == bool:
+    elif typ is bool:
         return _dumps_boolean(value, key)
-    elif typ == list or typ == tuple:
+    elif typ is list or typ is tuple:
         return _dumps_array(value, key)
-    elif typ == dict:
+    elif typ is dict:
         return _dumps_map(value, key)
     elif callable(value):
         return _dumps_fun(value, key)

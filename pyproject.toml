@@ -5,9 +5,15 @@ description = "Represent HTML and XML using Python data structures."
 authors = ["Marc van Grootel <marc.vangrootel@fontys.nl>"]
 readme = "README.md"
 
+[tool.poetry.dependencies]
+python = "^3.10"
+pyyaml = "^6.0.1"
+
 [tool.poetry.group.dev.dependencies]
-pre-commit = "^3.8.0"
-pytest = "^8.3.2"
+pre-commit = "3.8.0"
+pytest = "8.3.2"
+ruff = "0.9.7"
+pre-commit-update = "0.6.1"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -20,19 +26,31 @@ minversion = "6.0"
 filterwarnings = "ignore"
 norecursedirs = "docs build"
 
-[tool.black]
-line-length = 88
-target-version = ["py310"]
+[tool.ruff]
+target-version = "py310"
 
-[tool.flake8]
-max-line-length = 88
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.format]
+exclude = ["*.ipynb"]
+
+[tool.pre-commit-update]
+dry_run = true
+all_versions = false
+verbose = true
+warnings = true
+preview = false
+jobs = 10
+keep = ["ruff"]
+bleeding_edge = ["pylint"]
 
 [tool.mypy]
 exclude = ['tmp', 'examples']
-
-[tool.poetry.dependencies]
-python = "^3.10"
-pyyaml = "^6.0.1"
 
 [build-system]
 requires = ["poetry-core"]
