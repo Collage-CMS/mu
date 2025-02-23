@@ -1,5 +1,7 @@
 # Mu
 
+<img src="docs/logo.png" width="200">
+
 Represent XML using Python data structures. This does for Python what the [Hiccup](https://github.com/weavejester/hiccup) library by James Reeves did for the Clojure language.
 
 Warning: this library is still alpha. So expect breaking changes.
