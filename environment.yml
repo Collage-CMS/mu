@@ -1,5 +1,0 @@
-name: mu
-dependencies:
-  - python=3.10.14
-  - pip
-  - ipykernel

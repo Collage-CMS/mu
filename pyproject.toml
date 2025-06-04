@@ -1,19 +1,41 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "mu"
 version = "0.1.0"
 description = "Represent HTML and XML using Python data structures."
-authors = ["Marc van Grootel <marc.vangrootel@fontys.nl>"]
+authors = [{name = "xokomola", email = "marc.van.grootel@gmail.com"}]
+requires-python = ">=3.10"
+keywords = [
+    "html", "xml", "templates"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Topic :: Text Processing :: Markup :: XML",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "pyyaml>6.0.1"
+]
 readme = "README.md"
+license = "MIT"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-pyyaml = "^6.0.1"
+[project.optional-dependencies]
+dev = [
+    "pre-commit==3.8.0",
+    "pytest==8.3.2",
+    "ruff==0.9.7",
+    "pre-commit-update==0.6.1",
+]
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "3.8.0"
-pytest = "8.3.2"
-ruff = "0.9.7"
-pre-commit-update = "0.6.1"
+[project.urls]
+GitHub = "https://github.com/Collage-CMS/mu"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -51,7 +73,3 @@ bleeding_edge = ["pylint"]
 
 [tool.mypy]
 exclude = ['tmp', 'examples']
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
