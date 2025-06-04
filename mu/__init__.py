@@ -9,10 +9,10 @@
 from __future__ import annotations
 
 import re
-from typing import Dict
-from typing import List
 
 import mu.util as util
+# from typing import Any, Dict
+# from typing import List
 
 
 ERR_NOT_ELEMENT_NODE = ValueError("Not an element node.")
@@ -26,9 +26,9 @@ class Node:
     """Base class for active markup nodes."""
 
     def __init__(self, *nodes, **attrs) -> None:
-        self._content: List = []
-        self._attrs: Dict = {}
-        self.replace(nodes)
+        self._content: list = []
+        self._attrs: dict = {}
+        self.replace(list(nodes))
         # Hack to get around using `class` as kw argument (use `cls` instead)
         if "cls" in attrs:
             attrs["class"] = attrs.pop("cls")

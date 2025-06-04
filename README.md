@@ -324,9 +324,24 @@ When `dumps()` encounters a Python object it will call it's `mu()` method if it 
 
 ## Develop
 
+Install [uv](https://github.com/astral-sh/uv).
+
+Run tests.
+
+```shell
+pytest tests/
+```
+
+Or with coverage.
+
+```shell
+pytest --cov-report term --cov=mu tests/
+```
+
+
 Run `mypy` type checking.
 
-```
+```shell
 pip install mypy
 mypy --config-file pyproject.toml ./
 ```

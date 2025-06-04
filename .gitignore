@@ -11,6 +11,6 @@ wheels/
 
 # Others
 tmp/
-
+.coverage
 .DS_Store
 project.xpr
