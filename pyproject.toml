@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mu-xml"
-version = "0.1.0"
+version = "0.1.1"
 description = "Represent HTML and XML using Python data structures."
 authors = [{name = "xokomola", email = "marc.van.grootel@gmail.com"}]
 requires-python = ">=3.10"
