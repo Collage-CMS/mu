@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mu"
+name = "mu-xml"
 version = "0.1.0"
 description = "Represent HTML and XML using Python data structures."
 authors = [{name = "xokomola", email = "marc.van.grootel@gmail.com"}]
@@ -37,6 +37,9 @@ dev = [
 
 [project.urls]
 GitHub = "https://github.com/Collage-CMS/mu"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mu"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
