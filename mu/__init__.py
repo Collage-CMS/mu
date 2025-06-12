@@ -10,14 +10,11 @@ from __future__ import annotations
 
 import re
 
-import mu.util as util
-# from typing import Any, Dict
-# from typing import List
-
+from mu import util
 
 ERR_NOT_ELEMENT_NODE = ValueError("Not an element node.")
 
-ATOMIC_VALUE = set([int, str, float, complex, bool, str])
+ATOMIC_VALUE = {int, str, float, complex, bool, str}
 
 SPECIAL_NODES: frozenset[str] = frozenset({"$raw", "$comment", "$cdata", "$pi"})
 
@@ -26,8 +23,8 @@ class Node:
     """Base class for active markup nodes."""
 
     def __init__(self, *nodes, **attrs) -> None:
-        self._content: list = []
-        self._attrs: dict = {}
+        self.content: list = []
+        self.attrs: dict = {}
         self.replace(list(nodes))
         # Hack to get around using `class` as kw argument (use `cls` instead)
         if "cls" in attrs:
@@ -35,28 +32,28 @@ class Node:
         self.set_attrs(attrs)
 
     def set_attr(self, name, value=None) -> None:
-        self._attrs[name] = value
+        self.attrs[name] = value
 
     def set_attrs(self, attrs: dict) -> None:
-        self._attrs |= attrs
+        self.attrs |= attrs
 
     def replace(self, nodes: list) -> None:
-        self._content = nodes
-        self._content.extend(nodes)
+        self.content = nodes
+        self.content.extend(nodes)
 
     def append(self, nodes: list) -> None:
-        self._content.extend(nodes)
+        self.content.extend(nodes)
 
     def mu(self):
         raise NotImplementedError
 
 
-class XmlNames(object):
+class XmlNames:
     def transform(self, node: list) -> list:
         return node
 
 
-class HtmlNames(object):
+class HtmlNames:
     def transform(self, node: list) -> list:
         if _is_element(node):
             if self._is_sugared_name(node[0]):
@@ -79,19 +76,16 @@ class HtmlNames(object):
                 if len(child_nodes) > 0:
                     unsugared_node.extend(child_nodes)
                 return unsugared_node
-            else:
-                return node
-        else:
             return node
+        return node
 
-    def _is_sugared_name(self, tag: str):
+    def _is_sugared_name(self, tag: str) -> str:
         return "#" in tag or "." in tag
 
-    def _sugar_name(self, tag: str):
-        name = re.split(r"[#.]", tag)[0]
-        return name
+    def _sugar_name(self, tag: str) -> str:
+        return re.split(r"[#.]", tag)[0]
 
-    def _sugar_attrs(self, tag: str):
+    def _sugar_attrs(self, tag: str) -> dict:
         id = []
         cls = []
         for part in re.findall("[#.][^#.]+", tag):
@@ -107,7 +101,7 @@ class HtmlNames(object):
         return attrs
 
 
-class Serializer(object):
+class Serializer:
     def write(self, *nodes):
         return "".join(self._ser_sequence(nodes))
 
@@ -150,16 +144,14 @@ class XmlSerializer(Serializer):
         node_tag = tag(node)
         if close is True:
             return f"<{node_tag}{self._ser_attrs(node)}/>"
-        else:
-            return f"<{node_tag}{self._ser_attrs(node)}>"
+        return f"<{node_tag}{self._ser_attrs(node)}>"
 
     def _ser_content_node(self, node):
         yield self._start_tag(node, close=False)
         for child in content(node):
             if isinstance(child, tuple):
                 for x in child:
-                    for y in self._ser_node(x):
-                        yield y
+                    yield from self._ser_node(x)
             else:
                 for x in self._ser_node(child):
                     yield x
@@ -200,9 +192,9 @@ class XmlSerializer(Serializer):
             elif isinstance(value, bool):
                 if value:
                     output.append(f' {name}="{name}"')
-            elif isinstance(value, (list, tuple)):
+            elif isinstance(value, list | tuple):
                 output.append(
-                    f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"'  # noqa
+                    f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"',  # noqa
                 )
             else:
                 output.append(f' {name}="{util.escape_html(value)}"')
@@ -211,14 +203,13 @@ class XmlSerializer(Serializer):
     def _ser_special_node(self, node: list) -> str:
         if tag(node) == "$raw":
             return "".join(node[1:])
-        elif tag(node) == "$comment":
+        if tag(node) == "$comment":
             return f"<!-- {''.join(node[1:])} -->"
-        elif tag(node) == "$cdata":
+        if tag(node) == "$cdata":
             return f"<![CDATA[{''.join(node[1:])}]]>"
-        elif tag(node) == "$pi":
+        if tag(node) == "$pi":
             return f"<?{''.join(node[1:])}?>"
-        else:
-            return ""
+        return ""
 
 
 class HtmlSerializer(XmlSerializer):
@@ -236,7 +227,7 @@ class SgmlSerializer(XmlSerializer):
 
 def _is_element(value) -> bool:
     return (
-        isinstance(value, list) and len(value) > 0 and isinstance(value[0], (str, Node))
+        isinstance(value, list) and len(value) > 0 and isinstance(value[0], str | Node)
     )
 
 
@@ -245,12 +236,7 @@ def _is_special_node(value) -> bool:
 
 
 def is_empty(node) -> bool:
-    if len(node) == 1:
-        return True
-    elif len(node) == 2 and isinstance(node[1], dict):
-        return True
-    else:
-        return False
+    return bool(len(node) == 1 or (len(node) == 2 and isinstance(node[1], dict)))
 
 
 def has_attrs(value):
@@ -267,10 +253,8 @@ def get_attr(name, node, default=None):
         atts = attrs(node)
         if name in atts:
             return atts[name]
-        else:
-            return default
-    else:
-        raise ValueError(node)
+        return default
+    raise ValueError(node)
 
 
 # Accessor functions
@@ -280,36 +264,32 @@ def tag(node) -> str:
     """The tag string of the element."""
     if _is_element(node):
         return node[0]
-    else:
-        raise ERR_NOT_ELEMENT_NODE
+    raise ERR_NOT_ELEMENT_NODE
 
 
 def tag_obj(node) -> Node:
     """The tag object of the element."""
     if _is_element(node):
         return node[0]
-    else:
-        raise ERR_NOT_ELEMENT_NODE
+    raise ERR_NOT_ELEMENT_NODE
 
 
 def attrs(node) -> dict:
     """Dict with all attributes of the element.
-    None if the node is not an element."""
+    None if the node is not an element.
+    """
     if _is_element(node):
         if has_attrs(node):
             return node[1]
-        else:
-            return {}
-    else:
-        raise ERR_NOT_ELEMENT_NODE
+        return {}
+    raise ERR_NOT_ELEMENT_NODE
 
 
 def content(node) -> list:
     if _is_element(node) and len(node) > 1:
         children = node[2:] if isinstance(node[1], dict) else node[1:]
         return [x for x in children if x is not None]
-    else:
-        return []
+    return []
 
 
 def _is_active_node(node) -> bool:
@@ -319,8 +299,7 @@ def _is_active_node(node) -> bool:
 def _is_active_element(node) -> bool:
     if _is_element(node):
         return _is_active_node(tag(node))
-    else:
-        return _is_active_node(node)
+    return _is_active_node(node)
 
 
 def _is_sequence(node) -> bool:
@@ -341,23 +320,20 @@ def _expand_nodes(node):
                 node_tag.set_attrs(node_attrs)
             node_tag.append(node_content)
             return node_tag.mu()
-        else:
-            mu = [node_tag]
-            if len(node_attrs) > 0:
-                mu.append(node_attrs)
-            mu.extend([_expand_nodes(child) for child in node_content])
-            return mu
-    elif isinstance(node, (list, tuple)):
+        mu = [node_tag]
+        if len(node_attrs) > 0:
+            mu.append(node_attrs)
+        mu.extend([_expand_nodes(child) for child in node_content])
+        return mu
+    if isinstance(node, (list, tuple)):
         mu = []
         for child in node:
             if child is not None:
                 mu.append(_expand_nodes(child))
         return mu
-    else:
-        if _is_active_node(node):
-            return node.mu()
-        else:
-            return node
+    if _is_active_node(node):
+        return node.mu()
+    return node
 
 
 def _apply_nodes(node, rules: dict):
@@ -372,22 +348,19 @@ def _apply_nodes(node, rules: dict):
                     rule.set_attrs(node_attrs)
                 rule.append(node_content)
                 return rule.mu()
-            else:
-                return rules[node_tag]
-        else:
-            mu: list = [node_tag]
-            if len(node_attrs) > 0:
-                mu.append(node_attrs)
-            mu.extend([_apply_nodes(child, rules) for child in node_content])
-            return mu
-    elif isinstance(node, (list, tuple)):
+            return rules[node_tag]
+        mu: list = [node_tag]
+        if len(node_attrs) > 0:
+            mu.append(node_attrs)
+        mu.extend([_apply_nodes(child, rules) for child in node_content])
+        return mu
+    if isinstance(node, (list, tuple)):
         mu = []
         for child in node:
             if child is not None:
                 mu.append(_apply_nodes(child, rules))
         return mu
-    else:
-        return node
+    return node
 
 
 def expand(nodes):
@@ -397,7 +370,8 @@ def expand(nodes):
 
 def apply(nodes, rules: dict):
     """Expand a Mu datastructure replacing nodes that have a rule by invoking
-    its value mu() method."""
+    its value mu() method.
+    """
     """Apply Mu transformation rules to one or more Mu datastructures.
 
     Args:
@@ -425,6 +399,7 @@ def _markup(*nodes, serializer: Serializer):
     Example:
         >>> markup(["div", {"class": "content"}, "Hello"])
         '<div class="content">Hello</div>'
+
     """
     return serializer.write(*nodes)
 
@@ -450,20 +425,16 @@ def sgml(*nodes):
 
 
 def _loads_content(nodes):
-    # if len(nodes) == 0:
-    #    return None
     if len(nodes) == 1:
         return loads(nodes[0])
-    else:
-        return [loads(node) for node in nodes]
+    return [loads(node) for node in nodes]
 
 
 def _loads_boolean(node):
     v = get_attr("value", node)
     if v == "true()":
         return True
-    else:
-        return False
+    return False
 
 
 def loads(node):
@@ -471,7 +442,7 @@ def loads(node):
     typ = type(node)
     if typ in ATOMIC_VALUE or node is None:
         return node
-    elif typ is list:
+    if typ is list:
         if _is_element(node):
             node_typ = get_attr("as", node, "string")
             if node_typ == "object":
@@ -487,25 +458,25 @@ def loads(node):
                         item_value = loads(item)
                     obj[item_key] = item_value
                 return obj
-            elif node_typ == "array":
+            if node_typ == "array":
                 arr = []
                 for item in content(node):
                     arr.append(loads(item))
                 return arr
-            elif node_typ == "string":
+            if node_typ == "string":
                 return _loads_content(content(node))
-            elif node_typ == "boolean":
+            if node_typ == "boolean":
                 return _loads_boolean(node)
-            elif node_typ == "null":
+            if node_typ == "null":
                 return None
-            elif node_typ == "number":
-                pass
+            if node_typ == "number":
+                return None
+            return None
 
-        else:
-            li = []
-            for i in node:
-                li.append(loads(i))
-            return li
+        li = []
+        for i in node:
+            li.append(loads(i))
+        return li
     elif typ is dict:
         # dicts in mu are attributes so only used for control
         pass
@@ -554,16 +525,14 @@ def _dumps_boolean(value, key="_"):
 def _dumps_object(value, key="_"):
     if hasattr(value, "mu") and callable(value.mu):
         return [key, {"as": "mu"}, value.mu()]
-    else:
-        return [key, {"as": "null"}]
+    return [key, {"as": "null"}]
 
 
 def _dumps_fun(value, key="_"):
     v = value()
     if v is None:
         return [key, {"as": "null"}]
-    else:
-        return [key, {"as": "mu"}, v]
+    return [key, {"as": "mu"}, v]
 
 
 def dumps(value, key="_"):
@@ -571,23 +540,22 @@ def dumps(value, key="_"):
     typ = type(value)
     if value is None:
         return _dumps_none(key)
-    elif typ is int:
+    if typ is int:
         return _dumps_integer(value, key)
-    elif typ is float:
+    if typ is float:
         return _dumps_float(value, key)
-    elif typ is complex:
+    if typ is complex:
         return _dumps_complex(value, key)
-    elif typ is str:
+    if typ is str:
         return _dumps_string(value, key)
-    elif typ is bool:
+    if typ is bool:
         return _dumps_boolean(value, key)
-    elif typ is list or typ is tuple:
+    if typ is list or typ is tuple:
         return _dumps_array(value, key)
-    elif typ is dict:
+    if typ is dict:
         return _dumps_map(value, key)
-    elif callable(value):
+    if callable(value):
         return _dumps_fun(value, key)
-    elif isinstance(value, object):
+    if isinstance(value, object):
         return _dumps_object(value, key)
-    else:
-        return value
+    return value

@@ -4,16 +4,15 @@ import mu
 
 
 class OL(mu.Node):
-
     def __init__(self, *items):
-        self._content = list(items)
-        self._attrs = {}
+        self.content = list(items)
+        self.attrs = {}
 
     def mu(self):
         ol = ["ol"]
-        if len(self._attrs) > 0:
-            ol.append(self._attrs)
-        for item in self._content:
+        if len(self.attrs) > 0:
+            ol.append(self.attrs)
+        for item in self.content:
             ol.append(["li", item])
         return ol
 
@@ -22,7 +21,6 @@ class OL(mu.Node):
 
 
 class TestExpand:
-
     def test_expand_mu(self):
         # mu without any extra stuff should just reproduce the
         # same structure with None removed.

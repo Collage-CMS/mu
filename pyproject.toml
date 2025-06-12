@@ -26,17 +26,18 @@ dependencies = [
 readme = "README.md"
 license = "MIT"
 
-[project.optional-dependencies]
-dev = [
+[project.urls]
+GitHub = "https://github.com/Collage-CMS/mu"
+
+[tool.uv]
+dev-dependencies = [
     "pre-commit==3.8.0",
     "pytest==8.3.2",
     "pytest-cov==6.1.1",
     "ruff==0.9.7",
     "pre-commit-update==0.6.1",
+    "ty>=0.0.1a9",
 ]
-
-[project.urls]
-GitHub = "https://github.com/Collage-CMS/mu"
 
 [tool.hatch.build.targets.wheel]
 packages = ["mu"]
@@ -56,8 +57,8 @@ norecursedirs = "docs build"
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "B"]
-ignore = ["E501"]
+select = ["E", "F"]
+ignore = ["F401"]
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
@@ -74,6 +75,3 @@ preview = false
 jobs = 10
 keep = ["ruff"]
 bleeding_edge = ["pylint"]
-
-[tool.mypy]
-exclude = ['tmp', 'examples']

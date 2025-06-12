@@ -4,16 +4,15 @@ import mu
 
 
 class UL(mu.Node):
-
     def __init__(self, *items):
-        self._content = list(items)
-        self._attrs = {}
+        self.content = list(items)
+        self.attrs = {}
 
     def mu(self):
         ol = ["ul"]
-        if len(self._attrs) > 0:
-            ol.append(self._attrs)
-        for item in self._content:
+        if len(self.attrs) > 0:
+            ol.append(self.attrs)
+        for item in self.content:
             ol.append(["li", item])
         return ol
 
@@ -22,7 +21,6 @@ class UL(mu.Node):
 
 
 class TestApply:
-
     def test_no_rules(self):
         assert mu.apply(["foo"], {}) == ["foo"]
         assert mu.apply(["foo", ["bar", {"a": 1, "b": 2}, "bla bla"]], {}) == [

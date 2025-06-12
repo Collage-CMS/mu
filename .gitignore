@@ -14,3 +14,4 @@ tmp/
 .coverage
 .DS_Store
 project.xpr
+.python-version

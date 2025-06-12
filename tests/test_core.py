@@ -15,16 +15,15 @@ from mu import xml
 
 
 class OL(mu.Node):
-
     def __init__(self, *items):
-        self._content = list(items)
-        self._attrs = {}
+        self.content = list(items)
+        self.attrs = {}
 
     def mu(self):
         ol = ["ol"]
-        if len(self._attrs) > 0:
-            ol.append(self._attrs)
-        for item in self._content:
+        if len(self.attrs) > 0:
+            ol.append(self.attrs)
+        for item in self.content:
             ol.append(["li", item])
         return ol
 
@@ -33,9 +32,7 @@ class OL(mu.Node):
 
 
 class TestTagNames:
-
     def test_basic_tags(self):
-
         assert xml(["div"]) == "<div/>"
 
     def test_tag_syntax_sugar(self):
@@ -47,7 +44,6 @@ class TestTagNames:
 
 
 class TestAccessors:
-
     def test_tag(self):
         assert mu.tag(["foo"]) == "foo"
         assert mu.tag(["$foo"]) == "$foo"
@@ -68,7 +64,6 @@ class TestAccessors:
 
 
 class TestNotElement:
-
     def test_tag(self):
         with pytest.raises(ValueError):
             assert mu.tag(None) is None
@@ -81,7 +76,6 @@ class TestNotElement:
 
 
 class TestIsElement:
-
     def test_is_not_element(self):
         assert mu._is_element([]) is False
         assert mu._is_element(0) is False
@@ -105,7 +99,6 @@ class TestIsElement:
 
 
 class TestIsSpecialNode:
-
     def test_is_not_special(self):
         assert mu._is_special_node(None) is False
         assert mu._is_special_node("foo") is False
@@ -121,7 +114,6 @@ class TestIsSpecialNode:
 
 
 class TestHasAttributes:
-
     # FIXME URL values should be handled differently
     def test_has_not(self):
         assert mu.has_attrs(None) is False
@@ -137,7 +129,6 @@ class TestHasAttributes:
 
 
 class TestIsEmpty:
-
     def test_is_empty(self):
         assert mu.is_empty("foo") is False
         assert mu.is_empty(["foo"]) is True
@@ -146,7 +137,6 @@ class TestIsEmpty:
 
 
 class TestGetAttr:
-
     def test_get_attr(self):
         assert mu.get_attr("a", ["x", {"a": 10}]) == 10
         assert mu.get_attr("a", ["x", {"b": 10}], 20) == 20

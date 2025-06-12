@@ -147,9 +147,9 @@ class OL(mu.Node):
 
     def mu(self):
         ol = ["ol"]
-        if len(self._attrs) > 0:
-            ol.append(self._attrs)
-        for item in self._content:
+        if len(self.attrs) > 0:
+            ol.append(self.attrs)
+        for item in self.content:
             ol.append(["li", item])
         return ol
 ```
@@ -328,18 +328,36 @@ When `dumps()` encounters a Python object it will call it's `mu()` method if it 
 
 ## Develop
 
-Install [uv](https://github.com/astral-sh/uv).
+- Install [uv](https://github.com/astral-sh/uv).
+- `uv tool add ruff`
+- Maybe install `Ruff` VS Code extension
+
+Run linter.
+
+```shell
+ruff check mu
+```
+
+Run formatter.
+
+```shell
+ruff format mu
+```
+
 
 Run tests.
 
 ```shell
-pytest tests/
+uv tool run pytest
+# or
+uvx pytest
 ```
 
 Or with coverage.
 
 ```shell
-pytest --cov-report term --cov=mu tests/
+uv tool run pytest --cov-report term --cov=mu
+uvx pytest --cov-report term --cov=mu
 ```
 
 

@@ -11,47 +11,42 @@ importlib.reload(mu)
 
 
 class sect1(Node):
-
     def mu(self):
         sect1 = ["sect1"]
-        len(self._attrs) > 0 and sect1.append(self._attrs)
-        sect1.extend(self._content)
+        len(self.attrs) > 0 and sect1.append(self.attrs)
+        sect1.extend(self.content)
         return sect1
 
 
 class sect2(Node):
-
     def mu(self):
         sect2 = ["sect2"]
-        len(self._attrs) > 0 and sect2.append(self._attrs)
-        sect2.extend(self._content)
+        len(self.attrs) > 0 and sect2.append(self.attrs)
+        sect2.extend(self.content)
         return sect2
 
 
 class ol(Node):
-
     def mu(self):
         ol = ["itemizedlist"]
-        len(self._attrs) > 0 and ol.append(self._attrs)
-        ol.extend([["listitem", node] for node in self._content])
+        len(self.attrs) > 0 and ol.append(self.attrs)
+        ol.extend([["listitem", node] for node in self.content])
         return ol
 
 
 class p(Node):
-
     def mu(self):
         p = ["para"]
-        len(self._attrs) > 0 and p.append(self._attrs)
-        p.extend(self._content)
+        len(self.attrs) > 0 and p.append(self.attrs)
+        p.extend(self.content)
         return p
 
 
 class title(Node):
-
     def mu(self):
         title = ["title"]
-        len(self._attrs) > 0 and title.append(self._attrs)
-        title.extend(self._content)
+        len(self.attrs) > 0 and title.append(self.attrs)
+        title.extend(self.content)
         return title
 
 
@@ -70,7 +65,7 @@ prep = [
             ),
         ],
         id="sec.preparation",
-    )
+    ),
 ]
 recipe = [what, prep]
 
