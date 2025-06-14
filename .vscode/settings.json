@@ -12,14 +12,6 @@
         "-p",
         "test_*.py"
     ],
-    "yaml.customTags": [
-        "!dox/context mapping",
-        "!dox mapping",
-        "!dox/html5 mapping",
-        "!dox/xhtml mapping",
-        "!dox/xml mapping",
-        "!attrs mapping"
-    ],
     "python.analysis.typeCheckingMode": "standard",
     "python.analysis.autoImportCompletions": true
 }
