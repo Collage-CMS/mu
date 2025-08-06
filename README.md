@@ -8,6 +8,8 @@ Warning: this library is still alpha. So expect breaking changes.
 
 ```shell
 pip install mu-xml
+# or
+uv add mu-xml
 ```
 
 
