@@ -28,7 +28,7 @@ dependencies = [
 GitHub = "https://github.com/Collage-CMS/mu"
 
 [project.scripts]
-mu = "mu:main"
+mu = "mu.__main__:main"
 
 [tool.uv]
 dev-dependencies = [

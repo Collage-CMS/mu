@@ -369,9 +369,11 @@ uv version 0.1.2
 uv build
 git push origin
 git checkout main
-git merge dev
-
-uv publish
+get merge dev
+git tag -a v0.1.2 -m "Release version 0.1.2"
+git push origin
+git push origin tag v0.1.2
+uv publish --token YOURTOKEN
 ```
 
 ## Related work
