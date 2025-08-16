@@ -1,17 +1,42 @@
-# Python-generated files
+# Compilation
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Packaging
 build/
 dist/
 wheels/
+*.egg
 *.egg-info
+
+# Testing
+.pytest_cache/
+.hypothesis/
+
+# Coverage
+.tox*
+.coverage*
+.metacov
+coverage.json
+coverage.xml
+coverage.lcov
+
+# Other tools
+.ruff_cache/
 
 # Virtual environments
 .venv
 
 # Others
-tmp/
-.coverage
 .DS_Store
-project.xpr
 .python-version
+
+# Personal
+tmp/
+project.xpr
+*.gz
+*.zip
