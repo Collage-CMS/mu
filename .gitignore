@@ -36,6 +36,7 @@ coverage.lcov
 .python-version
 
 # Personal
+.env
 tmp/
 project.xpr
 *.gz

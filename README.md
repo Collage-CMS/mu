@@ -362,6 +362,13 @@ uv tool run pytest --cov-report term --cov=mu
 uvx pytest --cov-report term --cov=mu
 ```
 
+### Publish
+
+```console
+uv build
+uv version 0.1.2
+uv publish
+```
 
 ## Related work
 

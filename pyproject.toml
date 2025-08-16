@@ -1,13 +1,11 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "mu-xml"
 version = "0.1.1"
 description = "Represent HTML and XML using Python data structures."
-authors = [{name = "xokomola", email = "marc.van.grootel@gmail.com"}]
-requires-python = ">=3.10"
+authors = [
+    {name = "xokomola", email = "marc.van.grootel@gmail.com"}
+]
+readme = "README.md"
 keywords = [
     "html", "xml", "templates"
 ]
@@ -20,26 +18,29 @@ classifiers = [
     "Topic :: Text Processing :: Markup :: XML",
     "Programming Language :: Python :: 3.12",
 ]
+license = "MIT"
+requires-python = ">=3.12"
 dependencies = [
     "pyyaml==6.0.2"
 ]
-readme = "README.md"
-license = "MIT"
 
 [project.urls]
 GitHub = "https://github.com/Collage-CMS/mu"
 
+[project.scripts]
+mu = "mu:main"
+
 [tool.uv]
 dev-dependencies = [
-    "pre-commit==3.8.0",
-    "pytest==8.3.2",
-    "pytest-cov==6.1.1",
-    "ruff==0.9.7",
-    "ty>=0.0.1a9",
+    "pre-commit==4.3.0",
+    "pytest==8.4.1",
+    "pytest-cov==6.2.1",
+    "ruff==0.12.9",
+    "ty>=0.0.1a18",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["mu"]
+packages = ["src/mu"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -53,7 +54,7 @@ filterwarnings = "ignore"
 norecursedirs = "docs build"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F"]
@@ -74,3 +75,7 @@ preview = false
 jobs = 10
 keep = ["ruff"]
 bleeding_edge = ["pylint"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
