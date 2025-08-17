@@ -9,6 +9,8 @@
 from __future__ import annotations
 
 import re
+from typing import Callable
+from typing import Union
 
 from mu import util
 
@@ -31,7 +33,7 @@ class Node:
         self.replace(list(nodes))
 
     @property
-    def tag(self):
+    def tag(self) -> Union[str, Callable]:
         return self._name
 
     @property
@@ -127,7 +129,8 @@ class HtmlNames:
                     else:
                         attributes[name] = value
                 child_nodes = content(node)
-                unsugared_node = [tag]
+                unsugared_node = []
+                unsugared_node.append(tag)
                 if len(attributes) > 0:
                     unsugared_node.append(attributes)
                 if len(child_nodes) > 0:
@@ -136,7 +139,7 @@ class HtmlNames:
             return node
         return node
 
-    def _is_sugared_name(self, tag: str) -> str:
+    def _is_sugared_name(self, tag: str) -> bool:
         return "#" in tag or "." in tag
 
     def _sugar_name(self, tag: str) -> str:
@@ -159,13 +162,15 @@ class HtmlNames:
 
 
 class Serializer:
-    def write(self, *nodes):
-        return "".join(self._ser_sequence(nodes))
+    pass
 
 
 class XmlSerializer(Serializer):
     def __init__(self):
         self._names = XmlNames()
+
+    def write(self, *nodes):
+        return "".join(self._ser_sequence(nodes))
 
     def _ser_node(self, node):
         if _is_element(node):
@@ -215,7 +220,7 @@ class XmlSerializer(Serializer):
         node_obj = tag_obj(node)
         node_obj.set_attrs(attrs(node))
         node_obj.append(content(node))
-        yield self._ser_node(node_obj.mu())
+        yield self._ser_node(node_obj())
 
     def _ser_sequence(self, node):
         # a sequence, list would imply a malformed element
@@ -226,7 +231,7 @@ class XmlSerializer(Serializer):
     def _ser_atomic(self, node):
         if node:
             if _is_active_element(node):
-                yield self._ser_node(tag(node).mu())
+                yield self._ser_node(tag(node)())  # type: ignore
             else:
                 yield str(node)
         else:
@@ -365,8 +370,9 @@ def _expand_nodes(node):
         node_attrs = attrs(node)
         node_content = content(node)
         if _is_active_element(node):
-            return node_tag(*node_content, **node_attrs)
-        mu = [node_tag]
+            return node_tag(*node_content, **node_attrs)  # type: ignore
+        mu = []
+        mu.append(node_tag)
         if len(node_attrs) > 0:
             mu.append(node_attrs)
         mu.extend([_expand_nodes(child) for child in node_content])
@@ -444,7 +450,7 @@ def _markup(*nodes, serializer: Serializer):
         '<div class="content">Hello</div>'
 
     """
-    return serializer.write(*nodes)
+    return NotImplementedError
 
 
 def xml(*nodes):
