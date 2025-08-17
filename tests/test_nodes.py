@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from mu import CData
+from mu import Comment
 from mu import Element
 from mu import expand
 from mu import Node
+from mu import PI
+from mu import Raw
+from mu import Text
 
 
 class TestElement:
@@ -55,6 +60,31 @@ class TestElement:
         assert el.attrs == {"class": "foo"}
         assert hasattr(el.attrs, "cls") is False
         assert el(cls="bar") == ["p", {"class": "bar"}]
+
+
+class TestText:
+    def test_text_node(self):
+        assert Text("foo", "bar")() == ["$text", "foo", "bar"]
+
+
+class TestComment:
+    def test_comment_node(self):
+        assert Comment("foo", "bar")() == ["$comment", "foo", "bar"]
+
+
+class TestPI:
+    def test_pi_node(self):
+        assert PI("foo", "bar")() == ["$pi", "foo", "bar"]
+
+
+class TestCData:
+    def test_cdata_node(self):
+        assert CData("foo", "bar")() == ["$cdata", "foo", "bar"]
+
+
+class TestRaw:
+    def test_raw_node(self):
+        assert Raw("foo", "bar")() == ["$raw", "foo", "bar"]
 
 
 class UL(Node):

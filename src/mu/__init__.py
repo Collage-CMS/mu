@@ -85,6 +85,11 @@ class Text(Node):
         super().__init__("$text", *nodes)
 
 
+class PI(Node):
+    def __init__(self, *nodes) -> None:
+        super().__init__("$pi", *nodes)
+
+
 class CData(Node):
     def __init__(self, *nodes) -> None:
         super().__init__("$cdata", *nodes)
