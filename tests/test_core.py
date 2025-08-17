@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-import mu
 import pytest
+from mu import _is_active_element
+from mu import _is_element
+from mu import _is_special_node
+from mu import attrs
+from mu import content
+from mu import get_attr
+from mu import has_attrs
 from mu import html
+from mu import is_empty
+from mu import tag
 from mu import xml
-
-# from mu import sgml
-# from mu import xhtml
-
-
-# TODO Add functions to manipulate Mu structures.
-# TODO Add namespaces and generate well-formed XML (or auto-gen at top)
 
 
 class TestTagNames:
@@ -27,96 +28,96 @@ class TestTagNames:
 
 class TestAccessors:
     def test_tag(self):
-        assert mu.tag(["foo"]) == "foo"
-        assert mu.tag(["$foo"]) == "$foo"
+        assert tag(["foo"]) == "foo"
+        assert tag(["$foo"]) == "$foo"
 
     def test_no_attrs(self):
-        assert mu.attrs(["foo"]) == {}
-        assert mu.attrs(["foo", {}]) == {}
-        assert mu.attrs(["foo", "bla", {"a": 10}]) == {}
+        assert attrs(["foo"]) == {}
+        assert attrs(["foo", {}]) == {}
+        assert attrs(["foo", "bla", {"a": 10}]) == {}
 
     def test_attrs(self):
-        assert mu.attrs(["foo", {"a": 10, "b": 20}]) == {"a": 10, "b": 20}
+        assert attrs(["foo", {"a": 10, "b": 20}]) == {"a": 10, "b": 20}
 
     def test_content(self):
-        assert mu.content(["foo", "bar", "baz"]) == ["bar", "baz"]
-        assert mu.content(["foo"]) == []
-        assert mu.content(["foo", {}]) == []
-        assert mu.content(["foo", "bar"]) == ["bar"]
+        assert content(["foo", "bar", "baz"]) == ["bar", "baz"]
+        assert content(["foo"]) == []
+        assert content(["foo", {}]) == []
+        assert content(["foo", "bar"]) == ["bar"]
 
 
 class TestNotElement:
     def test_tag(self):
         with pytest.raises(ValueError):
-            assert mu.tag(None) is None
+            assert tag(None) is None
         with pytest.raises(ValueError):
-            assert mu.tag(0) is None
+            assert tag(0) is None
         with pytest.raises(ValueError):
-            assert mu.tag([]) is None
+            assert tag([]) is None
         with pytest.raises(ValueError):
-            assert mu.tag({}) is None
+            assert tag({}) is None
 
 
 class TestIsElement:
     def test_is_not_element(self):
-        assert mu._is_element([]) is False
-        assert mu._is_element(0) is False
-        assert mu._is_element(None) is False
-        assert mu._is_element({}) is False
-        assert mu._is_element("foo") is False
-        assert mu._is_element(True) is False
+        assert _is_element([]) is False
+        assert _is_element(0) is False
+        assert _is_element(None) is False
+        assert _is_element({}) is False
+        assert _is_element("foo") is False
+        assert _is_element(True) is False
 
     def test_is_element(self):
-        assert mu._is_element(["foo"]) is True
-        assert mu._is_element(["foo", ["bar"]]) is True
-        assert mu._is_element(["foo", "bla"]) is True
-        assert mu._is_element(["foo", {}, "bla"]) is True
+        assert _is_element(["foo"]) is True
+        assert _is_element(["foo", ["bar"]]) is True
+        assert _is_element(["foo", "bla"]) is True
+        assert _is_element(["foo", {}, "bla"]) is True
 
     def test_is_not_active_element(self):
-        assert mu._is_active_element([bool, 1, 2, 3]) is False
+        assert _is_active_element([bool, 1, 2, 3]) is False
 
 
 class TestIsSpecialNode:
     def test_is_not_special(self):
-        assert mu._is_special_node(None) is False
-        assert mu._is_special_node("foo") is False
-        assert mu._is_special_node([]) is False
-        assert mu._is_special_node(["foo"]) is False
+        assert _is_special_node(None) is False
+        assert _is_special_node("foo") is False
+        assert _is_special_node([]) is False
+        assert _is_special_node(["foo"]) is False
 
     def test_is_special(self):
-        assert mu._is_special_node(["$comment"]) is True
-        assert mu._is_special_node(["$cdata"]) is True
-        assert mu._is_special_node(["$pi"]) is True
-        assert mu._is_special_node(["$foo"]) is True
-        assert mu._is_special_node(["$raw"]) is True
+        assert _is_special_node(["$comment"]) is True
+        assert _is_special_node(["$cdata"]) is True
+        assert _is_special_node(["$pi"]) is True
+        assert _is_special_node(["$foo"]) is True
+        assert _is_special_node(["$raw"]) is True
 
 
 class TestHasAttributes:
     # FIXME URL values should be handled differently
     def test_has_not(self):
-        assert mu.has_attrs(None) is False
-        assert mu.has_attrs("foo") is False
-        assert mu.has_attrs([]) is False
-        assert mu.has_attrs(["foo"]) is False
-        assert mu.has_attrs(["foo", {}]) is False
-        assert mu.has_attrs(["foo", "bla", {"a": 10}]) is False
+        assert has_attrs(None) is False
+        assert has_attrs("foo") is False
+        assert has_attrs([]) is False
+        assert has_attrs(["foo"]) is False
+        assert has_attrs(["foo", {}]) is False
+        assert has_attrs(["foo", "bla", {"a": 10}]) is False
 
     def test_has(self):
-        assert mu.has_attrs(["foo", {"a": 10, "b": 20}]) is True
-        assert mu.has_attrs(["foo", {"a": 10, "b": 20}, "bla"]) is True
+        assert has_attrs(["foo", {"a": 10, "b": 20}]) is True
+        assert has_attrs(["foo", {"a": 10, "b": 20}, "bla"]) is True
 
 
 class TestIsEmpty:
     def test_is_empty(self):
-        assert mu.is_empty("foo") is False
-        assert mu.is_empty(["foo"]) is True
-        assert mu.is_empty(["foo", {}]) is True
-        assert mu.is_empty(["foo", (1, 2, 3)]) is False
+        assert is_empty("foo") is False
+        assert is_empty(["foo"]) is True
+        assert is_empty(["foo", {}]) is True
+        assert is_empty(["foo", (1, 2, 3)]) is False
 
 
 class TestGetAttr:
     def test_get_attr(self):
-        assert mu.get_attr("a", ["x", {"a": 10}]) == 10
-        assert mu.get_attr("a", ["x", {"b": 10}], 20) == 20
+        assert get_attr("a", ["x", {"a": 10}]) == 10
+        assert get_attr("a", ["x", {"b": 10}], 20) == 20
         with pytest.raises(ValueError):
-            mu.get_attr("a", "x", 20)
+            get_attr("a", "x", 20)
