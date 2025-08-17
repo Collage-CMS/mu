@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import pytest
-
 import mu
+import pytest
 from mu import html
 from mu import xml
 
@@ -12,23 +11,6 @@ from mu import xml
 
 # TODO Add functions to manipulate Mu structures.
 # TODO Add namespaces and generate well-formed XML (or auto-gen at top)
-
-
-class OL(mu.Node):
-    def __init__(self, *items):
-        self.content = list(items)
-        self.attrs = {}
-
-    def mu(self):
-        ol = ["ol"]
-        if len(self.attrs) > 0:
-            ol.append(self.attrs)
-        for item in self.content:
-            ol.append(["li", item])
-        return ol
-
-    def xml(self):
-        return mu._markup(self.mu())
 
 
 class TestTagNames:
@@ -92,10 +74,6 @@ class TestIsElement:
 
     def test_is_not_active_element(self):
         assert mu._is_active_element([bool, 1, 2, 3]) is False
-
-    def test_is_active_element(self):
-        assert mu._is_element([OL(), 1, 2, 3]) is True
-        assert mu._is_active_element([OL(), 1, 2, 3]) is True
 
 
 class TestIsSpecialNode:

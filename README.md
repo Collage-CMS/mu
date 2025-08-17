@@ -376,6 +376,12 @@ git push origin tag v0.1.2
 uv publish --token YOURTOKEN
 ```
 
+Also test if the package can be installed
+
+```console
+uv run --refresh-package mu --with mu --no-project -- python -c "import mu"
+```
+
 ## Related work
 
 - [SXML](https://en.wikipedia.org/wiki/SXML)

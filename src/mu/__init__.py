@@ -22,30 +22,82 @@ SPECIAL_NODES: frozenset[str] = frozenset({"$raw", "$comment", "$cdata", "$pi"})
 class Node:
     """Base class for active markup nodes."""
 
-    def __init__(self, *nodes, **attrs) -> None:
-        self.content: list = []
-        self.attrs: dict = {}
-        self.replace(list(nodes))
-        # Hack to get around using `class` as kw argument (use `cls` instead)
+    def __init__(self, name, *nodes, **attrs) -> None:
+        self.set_name(name)
+        self._attrs = {}
         if "cls" in attrs:
             attrs["class"] = attrs.pop("cls")
         self.set_attrs(attrs)
+        self.replace(list(nodes))
+
+    @property
+    def tag(self):
+        return self._name
+
+    @property
+    def attrs(self):
+        return self._attrs
+
+    @property
+    def content(self):
+        return self._content
+
+    def set_name(self, name: str) -> None:
+        self._name = name
 
     def set_attr(self, name, value=None) -> None:
-        self.attrs[name] = value
+        self._attrs[name] = value
 
     def set_attrs(self, attrs: dict) -> None:
-        self.attrs |= attrs
+        self._attrs |= attrs
 
     def replace(self, nodes: list) -> None:
-        self.content = nodes
-        self.content.extend(nodes)
+        self._content = nodes
 
-    def append(self, nodes: list) -> None:
-        self.content.extend(nodes)
+    def append(self, *nodes: list) -> None:
+        self._content.extend(nodes)
 
-    def mu(self):
-        raise NotImplementedError
+    def __repr__(self):
+        return f"<{self.tag}...>"
+
+    def __call__(self, *nodes, **attrs) -> list:
+        mu = []
+        mu.append(self.tag)
+        if "cls" in attrs:
+            attrs["class"] = attrs.pop("cls")
+        attrs = self.attrs | attrs
+        if len(attrs) > 0:
+            mu.append(attrs)
+        if len(self.content) > 0:
+            mu.extend(self.content)
+        if len(nodes) > 0:
+            mu.extend(nodes)
+        return mu
+
+
+class Element(Node):
+    def __init__(self, name: str, *nodes, **attrs) -> None:
+        super().__init__(name, *nodes, **attrs)
+
+
+class Text(Node):
+    def __init__(self, *nodes) -> None:
+        super().__init__("$text", *nodes)
+
+
+class CData(Node):
+    def __init__(self, *nodes) -> None:
+        super().__init__("$cdata", *nodes)
+
+
+class Raw(Node):
+    def __init__(self, *nodes) -> None:
+        super().__init__("$raw", *nodes)
+
+
+class Comment(Node):
+    def __init__(self, *nodes) -> None:
+        super().__init__("$comment", *nodes)
 
 
 class XmlNames:
@@ -116,15 +168,7 @@ class XmlSerializer(Serializer):
         elif _is_sequence(node):
             yield from self._ser_sequence(node)
         elif _is_active_node(node):
-            # drop content of this node to get handled by active node
-            _attrs = attrs(node)
-            _content = content(node)
-            if _attrs is not None:
-                node.set_attrs(_attrs)
-            if _content is not None:
-                # given content gets appended
-                node.append(_content)
-            yield self._ser_node(_expand_nodes(node.mu()))
+            yield from self._ser_node(node(*node.content, **node.attrs))
         else:
             yield from self._ser_atomic(node)
 
@@ -132,7 +176,7 @@ class XmlSerializer(Serializer):
         if _is_active_element(node):
             yield from self._ser_active_element(node)
         elif _is_special_node(node):
-            yield self._ser_special_node(node)
+            yield from self._ser_special_node(node)
         else:
             node = self._names.transform(node)
             if _is_empty_node(node):
@@ -293,7 +337,7 @@ def content(node) -> list:
 
 
 def _is_active_node(node) -> bool:
-    return hasattr(node, "xml") and callable(node.xml)
+    return callable(node)
 
 
 def _is_active_element(node) -> bool:
@@ -316,10 +360,7 @@ def _expand_nodes(node):
         node_attrs = attrs(node)
         node_content = content(node)
         if _is_active_element(node):
-            if len(node_attrs) > 0:
-                node_tag.set_attrs(node_attrs)
-            node_tag.append(node_content)
-            return node_tag.mu()
+            return node_tag(*node_content, **node_attrs)
         mu = [node_tag]
         if len(node_attrs) > 0:
             mu.append(node_attrs)
@@ -332,7 +373,7 @@ def _expand_nodes(node):
                 mu.append(_expand_nodes(child))
         return mu
     if _is_active_node(node):
-        return node.mu()
+        return node()
     return node
 
 
@@ -344,10 +385,7 @@ def _apply_nodes(node, rules: dict):
         if node_tag in rules:
             if _is_active_element(rules[node_tag]):
                 rule = rules[node_tag]
-                if len(node_attrs) > 0:
-                    rule.set_attrs(node_attrs)
-                rule.append(node_content)
-                return rule.mu()
+                return rule(*node_content, **node_attrs)
             return rules[node_tag]
         mu: list = [node_tag]
         if len(node_attrs) > 0:
@@ -442,7 +480,10 @@ def loads(node):
     typ = type(node)
     if typ in ATOMIC_VALUE or node is None:
         return node
-    if typ is list:
+    elif typ is dict:
+        # dicts in mu are attributes so only used for control
+        pass
+    elif typ is list:
         if _is_element(node):
             node_typ = get_attr("as", node, "string")
             if node_typ == "object":
@@ -477,9 +518,6 @@ def loads(node):
         for i in node:
             li.append(loads(i))
         return li
-    elif typ is dict:
-        # dicts in mu are attributes so only used for control
-        pass
     else:
         raise ValueError(f"Unknown node {node}")
 
