@@ -15,6 +15,7 @@ from typing import Union
 from mu import util
 
 ERR_NOT_ELEMENT_NODE = ValueError("Not an element node.")
+ERR_QNAME = ValueError("Not a valid XML QName.")
 
 ATOMIC_VALUE = {int, str, float, complex, bool, str}
 
@@ -165,8 +166,9 @@ name_xf = SugarNames()
 
 
 class XmlSerializer:
-    def __init__(self):
+    def __init__(self, ns: dict = {}):
         self._names = name_xf
+        self._ns = ns
 
     def write(self, *nodes):
         return self._ser_node(expand(*nodes))
@@ -190,10 +192,13 @@ class XmlSerializer:
                 return self._ser_content_node(node)
 
     def _start_tag(self, node, close: bool = False):
-        if close is True:
-            return f"<{tag(node)}{self._ser_attrs(node)}/>"
+        if self._is_qname(tag(node)):
+            if close is True:
+                return f"<{tag(node)}{self._ser_attrs(node)}/>"
+            else:
+                return f"<{tag(node)}{self._ser_attrs(node)}>"
         else:
-            return f"<{tag(node)}{self._ser_attrs(node)}>"
+            raise ERR_QNAME
 
     def _ser_content_node(self, node):
         n = []
@@ -224,10 +229,18 @@ class XmlSerializer:
             pass
 
     def _is_qname(self, name: str) -> bool:
-        if QNAME_RE.match(name):
-            return True
+        parts = re.split(":", name, 2)
+        print(f"NS PARTS: {parts}")
+        if len(parts) == 2:
+            if QNAME_RE.match(parts[1]) and QNAME_RE.match(parts[0]):
+                return True
+            else:
+                return False
         else:
-            return False
+            if QNAME_RE.match(parts[0]):
+                return True
+            else:
+                return False
 
     def _ser_attrs(self, node) -> str:
         node_attrs = attrs(node)
