@@ -119,12 +119,16 @@ class SugarNames:
                 attributes = self._sugar_attrs(node[0])
                 for name, value in attrs(node).items():
                     if "id" in attributes and name == "id":
-                        pass
+                        # id from attr dict overrides sugar
+                        attributes["id"] = value
                     elif "class" in attributes and name == "class":
                         if isinstance(value, list):
-                            attributes["class"].extend(value)
+                            for cls_value in value:
+                                if cls_value not in attributes["class"]:
+                                    attributes["class"].append(cls_value)
                         else:
-                            attributes["class"].append(value)
+                            if value not in attributes["class"]:
+                                attributes["class"].append(value)
                     else:
                         attributes[name] = value
                 child_nodes = content(node)
@@ -191,10 +195,13 @@ class XmlSerializer:
             else:  # content to process
                 return self._ser_content_node(node)
 
-    def _start_tag(self, node, close: bool = False):
+    def _start_tag(self, node, close: bool = False, xhtml=False):
         if self._is_qname(tag(node)):
             if close is True:
-                return f"<{tag(node)}{self._ser_attrs(node)}/>"
+                if xhtml is True:
+                    return f"<{tag(node)}{self._ser_attrs(node)} />"
+                else:
+                    return f"<{tag(node)}{self._ser_attrs(node)}/>"
             else:
                 return f"<{tag(node)}{self._ser_attrs(node)}>"
         else:
@@ -209,8 +216,11 @@ class XmlSerializer:
                     n.append(self._ser_node(x))
             else:
                 n.append(self._ser_node(child))
-        n.append(f"</{tag(node)}>")
+        n.append(self._close_tag(node))
         return "".join(n)
+
+    def _close_tag(self, node):
+        return f"</{tag(node)}>"
 
     def _ser_empty_node(self, node):
         return self._start_tag(node, close=True)
@@ -230,7 +240,6 @@ class XmlSerializer:
 
     def _is_qname(self, name: str) -> bool:
         parts = re.split(":", name, 2)
-        print(f"NS PARTS: {parts}")
         if len(parts) == 2:
             if QNAME_RE.match(parts[1]) and QNAME_RE.match(parts[0]):
                 return True
@@ -251,7 +260,7 @@ class XmlSerializer:
                     pass
                 elif isinstance(value, bool):
                     if value:
-                        output.append(f' {name}="{name}"')
+                        output.append(f" {self._bool_attr(name, value)}")
                 elif isinstance(value, list | tuple):
                     output.append(
                         f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"',  # noqa
@@ -263,6 +272,9 @@ class XmlSerializer:
                 pass
         return "".join(output)
 
+    def _bool_attr(self, name, value):
+        return f'{name}="{name}"'
+
     def _ser_special_node(self, node: list) -> str:
         if tag(node) == "$comment":
             return f"<!-- {''.join(node[1:])} -->"
@@ -272,24 +284,50 @@ class XmlSerializer:
             return "".join(node[1:])
         elif tag(node) == "$pi":
             return f"<?{''.join(node[1:])}?>"
+        elif tag(node) == "$text":
+            return "".join(node[1:])
         else:
             return ""
 
 
-class HtmlSerializer(XmlSerializer):
-    pass
-
-
-class XhtmlSerializer(XmlSerializer):
-    pass
+HTML_EMPTY_ELEMENTS = ["br", "link"]
 
 
 class SgmlSerializer(XmlSerializer):
-    pass
+    def _ser_empty_node(self, node):
+        return self._start_tag(node, close=False)
+
+    def _bool_attr(self, name, value):
+        return name
+
+
+class HtmlSerializer(SgmlSerializer):
+    def _ser_empty_node(self, node):
+        node_tag = tag(node)
+        if node_tag in HTML_EMPTY_ELEMENTS:
+            return self._start_tag(node, close=False)
+        else:
+            return self._start_tag(node, close=False) + self._close_tag(node)
+
+
+class XhtmlSerializer(XmlSerializer):
+    def _ser_empty_node(self, node):
+        node_tag = tag(node)
+        if node_tag in HTML_EMPTY_ELEMENTS:
+            return self._start_tag(node, close=True, xhtml=True)
+        else:
+            return self._start_tag(node, close=False) + self._close_tag(node)
+
+
+serializers = {
+    "xml": XmlSerializer(),
+    "html": HtmlSerializer(),
+    "xhtml": XhtmlSerializer(),
+    "sgml": SgmlSerializer(),
+}
 
 
 def _is_element(node) -> bool:
-    # TODO more stringent name checking
     return (
         isinstance(node, list | tuple)
         and len(node) > 0
@@ -416,50 +454,7 @@ def expand(*nodes):
         return _expand_nodes(nodes)
 
 
-def _apply_nodes(node, rules: dict):
-    if _is_element(node):
-        node_tag = tag(node)
-        node_attrs = attrs(node)
-        node_content = content(node)
-        if node_tag in rules:
-            if _is_active_element(rules[node_tag]):
-                rule = rules[node_tag]
-                return rule(*node_content, **node_attrs)
-            return rules[node_tag]
-        mu: list = [node_tag]
-        if len(node_attrs) > 0:
-            mu.append(node_attrs)
-        mu.extend([_apply_nodes(child, rules) for child in node_content])
-        return mu
-    if isinstance(node, (list, tuple)):
-        mu = []
-        for child in node:
-            if child is not None:
-                mu.append(_apply_nodes(child, rules))
-        return mu
-    return node
-
-
-def apply(nodes, rules: dict):
-    """Expand a Mu datastructure replacing nodes that have a rule by invoking
-    its value mu() method.
-    """
-    """Apply Mu transformation rules to one or more Mu datastructures.
-
-    Args:
-        *nodes: One or more Mu nodes to transform
-        rules: Tag->transformation function
-
-    Returns:
-        Transformed Mu datastructure(s)
-
-    Example:
-        TODO
-    """
-    return _apply_nodes(nodes, rules)
-
-
-def _markup(*nodes, serializer=XmlSerializer()):
+def _markup(*nodes, serializer=serializers["xml"]):
     """Convert Mu datastructure(s) into a markup string.
 
     Args:
@@ -482,18 +477,18 @@ def xml(*nodes):
 
 
 def html(*nodes):
-    """Render Mu as an XML formatted string."""
-    return _markup(*nodes, serializer=HtmlSerializer())
+    """Render Mu as an HTML formatted string."""
+    return _markup(*nodes, serializer=serializers["html"])
 
 
 def xhtml(*nodes):
-    """Render Mu as an XML formatted string."""
-    return _markup(*nodes, serializer=XhtmlSerializer())
+    """Render Mu as an XHTML formatted string."""
+    return _markup(*nodes, serializer=serializers["xhtml"])
 
 
 def sgml(*nodes):
-    """Render Mu as an XML formatted string."""
-    return _markup(*nodes, serializer=SgmlSerializer())
+    """Render Mu as an SGML formatted string."""
+    return _markup(*nodes, serializer=serializers["sgml"])
 
 
 def _loads_content(nodes):

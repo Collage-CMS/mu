@@ -28,13 +28,12 @@ class TestTagNames:
     def test_basic_tags(self):
         assert xml(["div"]) == "<div/>"
 
-    # TODO currently only html serializer does this
     def test_tag_syntax_sugar(self):
-        assert html(["div#foo"]) == '<div id="foo"/>'
-        assert html(["div.foo"]) == '<div class="foo"/>'
-        assert html(["div.foo", "bar", "baz"]) == '<div class="foo">barbaz</div>'
-        assert html(["div.a.b"]) == '<div class="a b"/>'
-        assert html(["div#foo.bar.baz"]) == '<div class="bar baz" id="foo"/>'
+        assert xml(["div#foo"]) == '<div id="foo"/>'
+        assert xml(["div.foo"]) == '<div class="foo"/>'
+        assert xml(["div.foo", "bar", "baz"]) == '<div class="foo">barbaz</div>'
+        assert xml(["div.a.b"]) == '<div class="a b"/>'
+        assert xml(["div#foo.bar.baz"]) == '<div class="bar baz" id="foo"/>'
 
 
 class TestAccessors:

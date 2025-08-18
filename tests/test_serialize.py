@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from mu import html
+from mu import sgml
+from mu import xhtml
 from mu import xml
-from mu import XmlSerializer
 
 
 class TestSerializeXml:
@@ -12,23 +14,14 @@ class TestSerializeXml:
 class TestAttributeFormatting:
     def test_escaping(self):
         # escape double quotes (required with foo="bar")
-        assert (
-            XmlSerializer()._ser_attrs(["_", {"foo": '"hi"'}])
-            == ' foo="&quot;hi&quot;"'
-        )
+        assert xml(["_", {"foo": '"hi"'}]) == '<_ foo="&quot;hi&quot;"/>'
         # note that one would expect this to be output as &apos;
         # but not a problem
-        assert (
-            XmlSerializer()._ser_attrs(["_", {"foo": "'hi'"}])
-            == ' foo="&#x27;hi&#x27;"'
-        )
+        assert xml(["_", {"foo": "'hi'"}]) == '<_ foo="&#x27;hi&#x27;"/>'
         # always escape &
-        assert XmlSerializer()._ser_attrs(["_", {"foo": "Q&A"}]) == ' foo="Q&amp;A"'
+        assert xml(["_", {"foo": "Q&A"}]) == '<_ foo="Q&amp;A"/>'
         # always escape < and >
-        assert (
-            XmlSerializer()._ser_attrs(["_", {"foo": "<foo/>"}])
-            == ' foo="&lt;foo/&gt;"'
-        )
+        assert xml(["_", {"foo": "<foo/>"}]) == '<_ foo="&lt;foo/&gt;"/>'
 
 
 class TestElementTextFormatting:
@@ -134,17 +127,27 @@ class TestCompile:
 
 
 class TestTagNames:
-    def basic_tags(self):
-        assert xml(["div"]) == "<div></div>"
+    def test_basic_tags(self):
+        assert html(["div"]) == "<div></div>"
 
-    # def tag_syntactic_sugar(self):
-    #     pass
+    def test_tag_syntax_sugar(self):
+        assert html(["div#foo"]) == '<div id="foo"></div>'
+        assert html(["div.foo"]) == '<div class="foo"></div>'
+        assert html(["div.foo", "bar", "baz"]) == '<div class="foo">barbaz</div>'
+        assert (
+            html(["div.foo", ["$text", "bar", "baz"]])
+            == '<div class="foo">barbaz</div>'
+        )
+        assert html(["div.a.b"]) == '<div class="a b"></div>'
+        assert html(["div.a.b.c"]) == '<div class="a b c"></div>'
+        assert html(["div#foo.bar.baz"]) == '<div class="bar baz" id="foo"></div>'
+        assert html(["div.bar.baz#foo"]) == '<div class="bar baz" id="foo"></div>'
 
 
 class TestTagContents:
     def test_empty_tags(self):
-        # NOTE default mode is XML, hiccup's default mode is XHTML
         assert xml(["div"]) == "<div/>"
+        assert html(["div"]) == "<div></div>"
         assert xml(["h1"]) == "<h1/>"
         assert xml(["script"]) == "<script/>"
         assert xml(["text"]) == "<text/>"
@@ -158,36 +161,36 @@ class TestTagContents:
 
     def test_void_tags(self):
         assert xml(["br"]) == "<br/>"
+        assert html(["br"]) == "<br>"
         assert xml(["link"]) == "<link/>"
+        assert html(["link"]) == "<link>"
         assert xml(["colgroup", {"span": 2}]) == '<colgroup span="2"/>'
+        assert html(["colgroup", {"span": 2}]) == '<colgroup span="2"></colgroup>'
 
     def test_containing_text(self):
-        assert xml(["text", "Lorem Ipsum"]) == "<text>Lorem Ipsum</text>"
+        assert html(["text", "Lorem Ipsum"]) == "<text>Lorem Ipsum</text>"
 
     def test_contents_are_concatenated(self):
         assert xml(["body", "foo", "bar"]) == "<body>foobar</body>"
         assert xml(["body", ["p"], ["br"]]) == "<body><p/><br/></body>"
-        # FIXME
-        # assert (
-        #    mu.xhtml(["body", ["p"], ["br"]])
-        #    == "<body><p></p><br /></body>"
-        # )
+        assert html(["body", ["p"], ["br"]]) == "<body><p></p><br></body>"
 
     def test_seqs_are_expanded(self):
-        # FIXME
-        # assert xml(([["p", "a"],["p", "b"]])) == "<p>a</p><p>b</p>"
-        pass
+        assert html(["body", "foo", "bar"]) == "<body>foobar</body>"
+        assert html([["p", "a"], ["p", "b"]]) == "<p>a</p><p>b</p>"
 
     def test_tags_can_contain_tags(self):
         assert xml(["div", ["p"]]) == "<div><p/></div>"
-        # FIXME
-        # assert mu.xhtml(["div", ["p"]]) == "<div><p></p></div>"
+        assert html(["div", ["p"]]) == "<div><p></p></div>"
+        assert html(["p", ["span", ["a", "foo"]]]) == "<p><span><a>foo</a></span></p>"
 
 
 class TestTagAttributes:
     def test_tag_with_blank_attribute_map(self):
         assert xml(["xml", {}]) == "<xml/>"
+        assert html(["xml", {}]) == "<xml></xml>"
         assert xml(["xml", None]) == "<xml/>"
+        assert html(["xml", None]) == "<xml></xml>"
 
     def test_tag_with_populated_attribute_map(self):
         assert xml(["xml", {"a": 123}]) == '<xml a="123"/>'
@@ -201,11 +204,38 @@ class TestTagAttributes:
     def test_nil_attributes(self):
         assert xml(["span", {"class": None}]) == "<span/>"
 
-    def test_tag_with_vector_class(self):
-        # TODO tests for syntactic sugar on element names
+    def test_resolve_attribute_conflict(self):
         pass
+
+    def test_tag_with_vector_class(self):
+        assert html(["div", {"class": ["bar"]}, "baz"]) == '<div class="bar">baz</div>'
+        assert (
+            html(["div.foo", {"class": ["foo", "bar"]}, "baz"])
+            == '<div class="foo bar">baz</div>'
+        )
 
 
 class TestRenderModes:
     def test_closed_tag(self):
         assert xml(["p"], ["br"]) == "<p/><br/>"
+        assert xhtml(["p"], ["br"]) == "<p></p><br />"
+        assert html(["p"], ["br"]) == "<p></p><br>"
+        assert sgml(["p"], ["br"]) == "<p><br>"
+
+    def test_boolean_attributes(self):
+        assert (
+            xml(["input", {"type": "checkbox", "checked": True}])
+            == '<input checked="checked" type="checkbox"/>'
+        )
+        assert (
+            xml(["input", {"type": "checkbox", "checked": False}])
+            == '<input type="checkbox"/>'
+        )
+        assert (
+            sgml(["input", {"type": "checkbox", "checked": True}])
+            == '<input checked type="checkbox">'
+        )
+        assert (
+            sgml(["input", {"type": "checkbox", "checked": False}])
+            == '<input type="checkbox">'
+        )
