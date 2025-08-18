@@ -91,6 +91,7 @@ These will be rendered as:
 <?foo bar?>
 &lt;foo&gt;
 <foo/>
+<x/><y/><z/>
 ```
 
 Nodes with tag names that start with `$` are reserved for other applications. The `xml()` function will drop special nodes that it does not recognize.

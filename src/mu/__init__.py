@@ -4,7 +4,7 @@
 # Note that this does not guarantee well-formed XML but it does make it easier
 # to produce XML strings.
 #
-#    mu.markup(['foo', {'a': 10}, 'bar']) => <foo a="10">bar</foo>
+#    mu.xml(['foo', {'a': 10}, 'bar']) => <foo a="10">bar</foo>
 #
 from __future__ import annotations
 
@@ -17,8 +17,6 @@ from mu import util
 ERR_NOT_ELEMENT_NODE = ValueError("Not an element node.")
 
 ATOMIC_VALUE = {int, str, float, complex, bool, str}
-
-SPECIAL_NODES: frozenset[str] = frozenset({"$raw", "$comment", "$cdata", "$pi"})
 
 
 class Node:
@@ -37,11 +35,11 @@ class Node:
         return self._name
 
     @property
-    def attrs(self):
+    def attrs(self) -> dict:
         return self._attrs
 
     @property
-    def content(self):
+    def content(self) -> list:
         return self._content
 
     def set_name(self, name: str) -> None:
@@ -107,12 +105,7 @@ class Comment(Node):
         super().__init__("$comment", *nodes)
 
 
-class XmlNames:
-    def transform(self, node: list) -> list:
-        return node
-
-
-class HtmlNames:
+class SugarNames:
     def transform(self, node: list) -> list:
         if _is_element(node):
             if self._is_sugared_name(node[0]):
@@ -136,8 +129,10 @@ class HtmlNames:
                 if len(child_nodes) > 0:
                     unsugared_node.extend(child_nodes)
                 return unsugared_node
+            else:
+                return node
+        else:
             return node
-        return node
 
     def _is_sugared_name(self, tag: str) -> bool:
         return "#" in tag or "." in tag
@@ -167,10 +162,10 @@ class Serializer:
 
 class XmlSerializer(Serializer):
     def __init__(self):
-        self._names = XmlNames()
+        self._names = SugarNames()
 
     def write(self, *nodes):
-        return "".join(self._ser_sequence(nodes))
+        return "".join(self._ser_sequence(list(nodes)))
 
     def _ser_node(self, node):
         if _is_element(node):
@@ -255,20 +250,20 @@ class XmlSerializer(Serializer):
         return "".join(output)
 
     def _ser_special_node(self, node: list) -> str:
-        if tag(node) == "$raw":
-            return "".join(node[1:])
         if tag(node) == "$comment":
             return f"<!-- {''.join(node[1:])} -->"
-        if tag(node) == "$cdata":
+        elif tag(node) == "$cdata":
             return f"<![CDATA[{''.join(node[1:])}]]>"
-        if tag(node) == "$pi":
+        elif tag(node) == "$raw":
+            return "".join(node[1:])
+        elif tag(node) == "$pi":
             return f"<?{''.join(node[1:])}?>"
-        return ""
+        else:
+            return ""
 
 
 class HtmlSerializer(XmlSerializer):
-    def __init__(self):
-        self._names = HtmlNames()
+    pass
 
 
 class XhtmlSerializer(XmlSerializer):
@@ -436,7 +431,7 @@ def apply(nodes, rules: dict):
     return _apply_nodes(nodes, rules)
 
 
-def _markup(*nodes, serializer: Serializer):
+def _markup(*nodes, serializer=XmlSerializer()):
     """Convert Mu datastructure(s) into a markup string.
 
     Args:
@@ -450,12 +445,12 @@ def _markup(*nodes, serializer: Serializer):
         '<div class="content">Hello</div>'
 
     """
-    return NotImplementedError
+    return serializer.write(*nodes)
 
 
 def xml(*nodes):
     """Render Mu as an XML formatted string."""
-    return _markup(*nodes, serializer=XmlSerializer())
+    return _markup(*nodes)
 
 
 def html(*nodes):

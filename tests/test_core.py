@@ -18,6 +18,7 @@ class TestTagNames:
     def test_basic_tags(self):
         assert xml(["div"]) == "<div/>"
 
+    # TODO currently only html serializer does this
     def test_tag_syntax_sugar(self):
         assert html(["div#foo"]) == '<div id="foo"/>'
         assert html(["div.foo"]) == '<div class="foo"/>'
