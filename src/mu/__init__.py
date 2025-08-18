@@ -355,19 +355,17 @@ def _is_empty_node(node) -> bool:
 
 def _expand_nodes(node):
     if _is_element(node):
+        node_tag = tag(node)
+        node_attrs = attrs(node)
+        node_content = content(node)
         if _is_active_element(node):
             # in tag position
-            node_tag = tag(node)
-            node_attrs = attrs(node)
-            node_content = content(node)
             return _expand_nodes(node_tag(*node_content, **node_attrs))  # type: ignore
         else:
-            node = name_xf.transform(node)
-            mu = [tag(node)]
-            node_attrs = attrs(node)
+            mu = [node_tag]
             if len(node_attrs) > 0:
                 mu.append(node_attrs)  # type: ignore
-            mu.extend([_expand_nodes(child) for child in content(node)])
+            mu.extend([_expand_nodes(child) for child in node_content])  # type: ignore
             return mu
     elif isinstance(node, (list, tuple)):
         mu = []
