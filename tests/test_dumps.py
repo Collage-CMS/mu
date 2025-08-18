@@ -8,13 +8,11 @@ class Foo:
 
 
 class Bar:
-
     def mu(self):
         return ["$yo!"]
 
 
 class Baz:
-
     def mu(self):
         return ["x", "bla"]
 
@@ -24,14 +22,11 @@ def foobar():
 
 
 class TestDumps:
-
     def test_jsox_dump_atomic(self):
-
         assert dumps(10) == ["_", {"as": "integer"}, 10]
         assert dumps(10) == ["_", {"as": "integer"}, 10]
 
     def test_jsox_dump_object(self):
-
         assert dumps({"x": 10}) == ["_", {"as": "object"}, ["x", {"as": "integer"}, 10]]
 
         assert dumps({"x": 10, "y": "abc"}) == [
@@ -49,7 +44,6 @@ class TestDumps:
         ]
 
     def test_jsox_dump_array(self):
-
         assert dumps([1, 2, 3]) == [
             "_",
             {"as": "array"},
@@ -67,7 +61,6 @@ class TestDumps:
         ]
 
     def test_jsox_dump_nested(self):
-
         assert dumps([1, [2, 3, True], 4]) == [
             "_",
             {"as": "array"},
@@ -113,7 +106,6 @@ class TestDumps:
         ]
 
     def test_jsox_dump_classes(self):
-
         assert dumps(Foo()) == ["_", {"as": "null"}]
 
         assert dumps(Bar()) == ["_", {"as": "mu"}, ["$yo!"]]
@@ -126,15 +118,12 @@ class TestDumps:
         ]
 
     def test_jsox_dump_xml_object(self):
-
         assert dumps(Baz()) == ["_", {"as": "mu"}, ["x", "bla"]]
 
     def test_jsox_dump_functions(self):
-
         assert dumps(foobar) == ["_", {"as": "null"}]
 
     def test_jsox_dump_none(self):
-
         assert dumps([1, None]) == [
             "_",
             {"as": "array"},
@@ -143,7 +132,6 @@ class TestDumps:
         ]
 
     def test_jsox_dump_empty_array(self):
-
         assert dumps([1, []]) == [
             "_",
             {"as": "array"},
@@ -152,7 +140,6 @@ class TestDumps:
         ]
 
     def test_jsox_dump_emtpy_dict(self):
-
         assert dumps([1, {}]) == [
             "_",
             {"as": "array"},
@@ -161,7 +148,6 @@ class TestDumps:
         ]
 
     def test_jsox_dump_float(self):
-
         assert dumps([1, 1.0]) == [
             "_",
             {"as": "array"},
@@ -170,7 +156,6 @@ class TestDumps:
         ]
 
     def test_jsox_dump_complex(self):
-
         # not sure how to represent complex numbers in Mu
 
         assert dumps([1, 1j]) == [

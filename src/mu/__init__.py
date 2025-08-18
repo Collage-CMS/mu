@@ -113,7 +113,7 @@ class Comment(Node):
 
 class SugarNames:
     def transform(self, node: list) -> list:
-        if _is_element(node):
+        if is_element(node):
             if self._is_sugared_name(node[0]):
                 tag = self._sugar_name(node[0])
                 attributes = self._sugar_attrs(node[0])
@@ -178,7 +178,7 @@ class XmlSerializer:
         return self._ser_node(expand(*nodes))
 
     def _ser_node(self, node):
-        if _is_element(node):
+        if is_element(node):
             return self._ser_element(node)
         elif _is_sequence(node):
             return self._ser_sequence(node)
@@ -186,7 +186,7 @@ class XmlSerializer:
             return self._ser_atomic(node)
 
     def _ser_element(self, node):
-        if _is_special_node(node):
+        if is_special_node(node):
             return self._ser_special_node(node)
         else:
             node = self._names.transform(node)
@@ -234,7 +234,7 @@ class XmlSerializer:
 
     def _ser_atomic(self, node):
         if node:
-            return str(node)
+            return util.escape_html(node)
         else:
             pass
 
@@ -277,15 +277,17 @@ class XmlSerializer:
 
     def _ser_special_node(self, node: list) -> str:
         if tag(node) == "$comment":
-            return f"<!-- {''.join(node[1:])} -->"
+            cmt = "".join(node[1:])
+            # -- is not allowed inside comment text
+            return f"<!-- {cmt.replace('--', '&#8208;&#8208;')} -->"
         elif tag(node) == "$cdata":
             return f"<![CDATA[{''.join(node[1:])}]]>"
         elif tag(node) == "$raw":
             return "".join(node[1:])
         elif tag(node) == "$pi":
-            return f"<?{''.join(node[1:])}?>"
+            return f"<?{' '.join(node[1:])}?>"
         elif tag(node) == "$text":
-            return "".join(node[1:])
+            return util.escape_html("".join(node[1:]))
         else:
             return ""
 
@@ -327,7 +329,7 @@ serializers = {
 }
 
 
-def _is_element(node) -> bool:
+def is_element(node) -> bool:
     return (
         isinstance(node, list | tuple)
         and len(node) > 0
@@ -335,17 +337,17 @@ def _is_element(node) -> bool:
     )
 
 
-def _is_special_node(value) -> bool:
-    return _is_element(value) and isinstance(value[0], str) and value[0][0] == "$"
+def is_special_node(value) -> bool:
+    return is_element(value) and isinstance(value[0], str) and value[0][0] == "$"
 
 
 def is_empty(node) -> bool:
     return bool(len(node) == 1 or (len(node) == 2 and isinstance(node[1], dict)))
 
 
-def has_attrs(value):
+def has_attrs(value) -> bool:
     return (
-        _is_element(value)
+        is_element(value)
         and len(value) > 1
         and isinstance(value[1], dict)
         and len(value[1]) > 0
@@ -353,7 +355,7 @@ def has_attrs(value):
 
 
 def get_attr(name, node, default=None):
-    if _is_element(node):
+    if is_element(node):
         atts = attrs(node)
         if name in atts:
             return atts[name]
@@ -367,7 +369,7 @@ def get_attr(name, node, default=None):
 
 def tag(node) -> str:
     """The tag string of the element."""
-    if _is_element(node):
+    if is_element(node):
         return node[0]
     else:
         raise ERR_NOT_ELEMENT_NODE
@@ -375,7 +377,7 @@ def tag(node) -> str:
 
 def tag_obj(node) -> Node:
     """The tag object of the element."""
-    if _is_element(node):
+    if is_element(node):
         return node[0]
     else:
         raise ERR_NOT_ELEMENT_NODE
@@ -385,7 +387,7 @@ def attrs(node) -> dict:
     """Dict with all attributes of the element.
     None if the node is not an element.
     """
-    if _is_element(node):
+    if is_element(node):
         if has_attrs(node):
             return node[1]
         else:
@@ -394,7 +396,7 @@ def attrs(node) -> dict:
 
 
 def content(node) -> list:
-    if _is_element(node) and len(node) > 1:
+    if is_element(node) and len(node) > 1:
         children = node[2:] if isinstance(node[1], dict) else node[1:]
         return [x for x in children if x is not None]
     else:
@@ -406,7 +408,7 @@ def _is_active_node(node) -> bool:
 
 
 def _is_active_element(node) -> bool:
-    if _is_element(node):
+    if is_element(node):
         return _is_active_node(tag(node))
     return _is_active_node(node)
 
@@ -420,7 +422,7 @@ def _is_empty_node(node) -> bool:
 
 
 def _expand_nodes(node):
-    if _is_element(node):
+    if is_element(node):
         node_tag = tag(node)
         node_attrs = attrs(node)
         node_content = content(node)
@@ -513,14 +515,14 @@ def loads(node):
         # dicts in mu are attributes so only used for control
         pass
     elif typ is list:
-        if _is_element(node):
+        if is_element(node):
             node_typ = get_attr("as", node, "string")
             if node_typ == "object":
                 obj = {}
                 i = 0
                 for item in content(node):
                     i += 1
-                    if _is_element(item):
+                    if is_element(item):
                         item_key = get_attr("key", item, tag(item))
                         item_value = loads(item)
                     else:

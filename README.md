@@ -4,6 +4,7 @@ Represent XML using Python data structures. This does for Python what the [Hiccu
 
 Warning: this library is still alpha. So expect breaking changes.
 
+
 ## Install
 
 ```shell
@@ -33,6 +34,7 @@ Note that serializing to a string will not guarantee well-formed XML.
 XML is a tree data structure made up of various node types such as element, attribute, or text nodes.
 
 However, writing markup in code is tedious and error-prone. Mu allows creating markup with Python code and basic Python data structures.
+
 
 ### Element nodes
 
@@ -82,6 +84,7 @@ XML has a few syntactic constructs that you usually don't need. But if you do ne
 ["$pi", "foo", "bar"]
 ["$cdata", "<foo>"]
 ["$raw", "<foo/>"]
+["$text" "<foo>"]
 ```
 
 These will be rendered as:
@@ -89,9 +92,9 @@ These will be rendered as:
 ```xml
 <!-- this is a comment -->
 <?foo bar?>
-&lt;foo&gt;
+<![CDATA[<foo>]]>
 <foo/>
-<x/><y/><z/>
+&lt;foo&gt;
 ```
 
 Nodes with tag names that start with `$` are reserved for other applications. The `xml()` function will drop special nodes that it does not recognize.
@@ -113,7 +116,7 @@ Mu does not enforce XML rules. You can use namespaces but you have to provide th
 
 ```xml
 <svg xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="100" x="10" y="10"/>
+  <rect height="100" width="200" x="10" y="10"/>
 </svg>
 ```
 
@@ -131,6 +134,7 @@ The following uses explicit namespace prefixes and is semantically identical to 
 </svg:svg>
 ```
 
+
 ### Object nodes
 
 Object nodes may appear in two positions inside a Mu data structure.
@@ -138,60 +142,55 @@ Object nodes may appear in two positions inside a Mu data structure.
 1) In the content position of an element node (e.g. `["p", {"class": "x"}, obj]`) or,
 2) In the tag position of an element node (e.g. `[obj, {"class": "x"}, "content"]`)
 
-Object nodes can be derived from the `mu.Node` class and must implement the `mu` method which should generate well-formed Mu data. This method will be called when rendering or expanding the Mu data structure.
-
-As an example take the following custom class definition.
+Object nodes can be derived from the `mu.Node` class. See the example below.
 
 ```python
-import mu
-from mu import xml
+from mu import Node, xml
 
-class OL(mu.Node):
+class UL(Node):
+    def __init__(self, **attrs):
+        super().__init__("ul", **attrs)
 
-    def mu(self):
-        ol = ["ol"]
-        if len(self.attrs) > 0:
-            ol.append(self.attrs)
-        for item in self.content:
-            ol.append(["li", item])
-        return ol
+    def __call__(self, *nodes, **attrs):
+        nodes = [["li", node] for node in nodes]
+        return super().__call__(*nodes, **attrs)
 ```
 
 Let's use this class in a Mu data structure.
 
 ```python
-xml(["div", OL(), "foo"])
+xml(["div", UL(), "foo"])
 ```
 
 ```xml
-<div><ol/>foo</div>
+<div><ul/>foo</div>
 ```
 
-Here the `OL()` object is in the content position so no information is passed to it to render a list. This may not be what you wanted to achieve.
+Here the `UL()` object is in the content position so no information is passed to it to render a list. This may not be what you wanted to achieve.
 
 To produce a list the object must be in the tag position of an element node.
 
 ```python
-xml(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
+xml(["div", [UL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
 ```
 
 ```xml
 <div>
-  <ol class="foo bar">
+  <ul class="foo bar">
     <li>item 1</li>
     <li>item 2</li>
     <li>item 3</li>
-  </ol>
+  </ul>
 </div>
 ```
 
 You can also provide some initial content and attributes in the object node constructor.
 
 ```python
-xml(["div", [OL("item 1", id=1, cls=("foo", "bar")), "item 2", "item 3"]])
+xml(["div", [UL(id=1, cls=("foo", "bar")), "item 1", "item 2", "item 3"]])
 ```
 
-Note that we cannot use the reserved `class` keyword, instead use `cls` to get a `class` attribute. It is a bit of a hack.
+Note that we cannot use the reserved `class` keyword, instead use `cls` to get a `class` attribute.
 
 ```xml
 <div>
@@ -202,6 +201,7 @@ Note that we cannot use the reserved `class` keyword, instead use `cls` to get a
   </ol>
 </div>
 ```
+
 
 ### Expand nodes
 
@@ -219,87 +219,6 @@ expand(["div", [OL(), {"class": ("foo", "bar")}, "item 1", "item 2", "item 3"]])
     ["li", "item 1"],
     ["li", "item 2"],
     ["li", "item 3"]]]
-```
-
-### Apply nodes
-
-A third and final method of building a document is `mu.apply`. It gets a dictionary with rules. The values of the dictionary are either a replacement value or a `mu.Node` (or something that looks like one).
-
-Using the previous example of the `UL` object we can illustrate how `my.apply` works.
-
-Say we have a Mu data structure in which we want to replace each `foo` element with an unordered list node object.
-
-```python
-from mu import apply
-
-apply(
-  ["doc", ["foo", {"class": "x"}, "item 1", "item 2"]],
-  {"foo": OL()})
-```
-
-```python
-["doc",
-  ["ol", {"class": "x"}, ["li", "item 1"], ["li", "item 2"]]]
-```
-
-You can also pass in literal values that get replaced when the element name matches a rule.
-
-```python
-apply(
-  ["doc", ["$foo"], ["bar"], ["$foo"]],
-  {"$foo": ["BAR"]})
-```
-
-```python
-["doc",
-  ["BAR"],["bar"], ["BAR"]]
-```
-
-Note that when object nodes are found they won't get expanded unless they are present in the rules dictionary.
-
-### Mu documents as YAML
-
-Many Mu documents can be expressed as YAML quite elegantly.
-
-```yml
-[foo,[bar, {a: 1, class: bla}, just saying]]
-```
-
-Let's try something more complicated (a [Docbook cooking recipe](https://opensuse.github.io/daps/doc/art.tutorial.html)).
-
-```yml
-[
-    [sect1,
-        [title, What do you need?],
-        [sect2,
-            [title, Ingredients],
-            [para]],
-        [sect2,
-            [title, Equipment],
-            [para]]],
-    [sect1, {id: sec.preparation},
-        [title, Preparation],
-        [itemizedlist,
-            [listitem,
-                [para, 60g Habanero Chilis]],
-            [listitem,
-                [para, 30g Cayenne Chilis]],
-            [listitem,
-                [para, "1,5 Butch T Chilis"]],
-            [listitem,
-                [para, 75g Kidney Beans]]]]
-]
-```
-
-Etc. you get the idea. It's not ideal (e.g. some characters, such as commas, may require text to be quoted) and using coding we can make such documents using code.
-
-
-### Mu documents as code
-
-Use code to construct larger documents.
-
-```python
-# see examples/docbook-cooking.py
 ```
 
 
@@ -329,6 +248,7 @@ mu.loads(['_', {'as': 'object'},
 
 When `dumps()` encounters a Python object it will call it's `mu()` method if it exists otherwise it will not be part of the serialized result. A function object will be called and it's return value becomes part of the serialized result.
 
+
 ## Develop
 
 - Install [uv](https://github.com/astral-sh/uv).
@@ -338,53 +258,31 @@ When `dumps()` encounters a Python object it will call it's `mu()` method if it 
 Run linter.
 
 ```shell
-ruff check mu
+uvx ruff check
 ```
 
 Run formatter.
 
 ```shell
-ruff format mu
+uvx ruff format
 ```
 
 
 Run tests.
 
 ```shell
-uv tool run pytest
-# or
-uvx pytest
+uv run pytest
 ```
 
-Or with coverage.
+Or with coverage and missing lines.
 
 ```shell
-uv tool run pytest --cov-report term --cov=mu
-uvx pytest --cov-report term --cov=mu
+uv run pytest --cov-report term-missing --cov=mu
 ```
 
-### Publish
-
-```console
-uv version 0.1.2
-uv build
-git push origin
-git checkout main
-get merge dev
-git tag -a v0.1.2 -m "Release version 0.1.2"
-git push origin
-git push origin tag v0.1.2
-uv publish --token YOURTOKEN
-```
-
-Also test if the package can be installed
-
-```console
-uv run --refresh-package mu --with mu --no-project -- python -c "import mu"
-```
 
 ## Related work
 
-- [SXML](https://en.wikipedia.org/wiki/SXML)
 - [weavejester/hiccup](https://github.com/weavejester/hiccup)
 - [nbessi/pyhiccup](https://github.com/nbessi/pyhiccup)
+- [SXML](https://en.wikipedia.org/wiki/SXML)

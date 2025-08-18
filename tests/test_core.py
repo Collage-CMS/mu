@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import pytest
 from mu import _is_active_element
-from mu import _is_element
-from mu import _is_special_node
 from mu import attrs
 from mu import content
 from mu import get_attr
 from mu import has_attrs
 from mu import html
+from mu import is_element
 from mu import is_empty
+from mu import is_special_node
 from mu import Node
 from mu import tag
 from mu import xml
@@ -70,43 +70,43 @@ class TestNotElement:
 
 class TestIsElement:
     def test_is_not_element(self):
-        assert _is_element([]) is False
-        assert _is_element(0) is False
-        assert _is_element(None) is False
-        assert _is_element({}) is False
-        assert _is_element("foo") is False
-        assert _is_element(True) is False
+        assert is_element([]) is False
+        assert is_element(0) is False
+        assert is_element(None) is False
+        assert is_element({}) is False
+        assert is_element("foo") is False
+        assert is_element(True) is False
 
     def test_is_element(self):
-        assert _is_element(["foo"]) is True
-        assert _is_element(["foo", ["bar"]]) is True
-        assert _is_element(["foo", "bla"]) is True
-        assert _is_element(["foo", {}, "bla"]) is True
+        assert is_element(["foo"]) is True
+        assert is_element(["foo", ["bar"]]) is True
+        assert is_element(["foo", "bla"]) is True
+        assert is_element(["foo", {}, "bla"]) is True
 
     def test_is_not_active_element(self):
         assert _is_active_element([bool, 1, 2, 3]) is False
 
     def test_is_active_element(self):
-        assert _is_element(UL()) is False
-        assert _is_element([UL()]) is True
-        assert _is_element([UL(), 1]) is True
-        assert _is_element([UL(), {}, 1]) is True
-        assert _is_element([UL(cls="foo"), 1, 2, 3]) is True
+        assert is_element(UL()) is False
+        assert is_element([UL()]) is True
+        assert is_element([UL(), 1]) is True
+        assert is_element([UL(), {}, 1]) is True
+        assert is_element([UL(cls="foo"), 1, 2, 3]) is True
 
 
 class TestIsSpecialNode:
     def test_is_not_special(self):
-        assert _is_special_node(None) is False
-        assert _is_special_node("foo") is False
-        assert _is_special_node([]) is False
-        assert _is_special_node(["foo"]) is False
+        assert is_special_node(None) is False
+        assert is_special_node("foo") is False
+        assert is_special_node([]) is False
+        assert is_special_node(["foo"]) is False
 
     def test_is_special(self):
-        assert _is_special_node(["$comment"]) is True
-        assert _is_special_node(["$cdata"]) is True
-        assert _is_special_node(["$pi"]) is True
-        assert _is_special_node(["$foo"]) is True
-        assert _is_special_node(["$raw"]) is True
+        assert is_special_node(["$comment"]) is True
+        assert is_special_node(["$cdata"]) is True
+        assert is_special_node(["$pi"]) is True
+        assert is_special_node(["$foo"]) is True
+        assert is_special_node(["$raw"]) is True
 
 
 class TestHasAttributes:
