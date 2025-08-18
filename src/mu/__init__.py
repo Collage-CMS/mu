@@ -164,70 +164,57 @@ class XmlSerializer:
         self._names = name_xf
 
     def write(self, *nodes):
-        return "".join(self._ser_sequence(list(nodes)))
+        return self._ser_node(expand(*nodes))
 
     def _ser_node(self, node):
         if _is_element(node):
-            yield from self._ser_element(node)
+            return self._ser_element(node)
         elif _is_sequence(node):
-            yield from self._ser_sequence(node)
-        elif _is_active_node(node):
-            yield from self._ser_node(node(*node.content, **node.attrs))
+            return self._ser_sequence(node)
         else:
-            yield from self._ser_atomic(node)
+            return self._ser_atomic(node)
 
     def _ser_element(self, node):
-        if _is_active_element(node):
-            yield from self._ser_active_element(node)
-        elif _is_special_node(node):
-            yield from self._ser_special_node(node)
+        if _is_special_node(node):
+            return self._ser_special_node(node)
         else:
             node = self._names.transform(node)
             if _is_empty_node(node):
-                yield from self._ser_empty_node(node)
+                return self._ser_empty_node(node)
             else:  # content to process
-                yield from self._ser_content_node(node)
+                return self._ser_content_node(node)
 
     def _start_tag(self, node, close: bool = False):
-        node_tag = tag(node)
         if close is True:
-            return f"<{node_tag}{self._ser_attrs(node)}/>"
-        return f"<{node_tag}{self._ser_attrs(node)}>"
+            return f"<{tag(node)}{self._ser_attrs(node)}/>"
+        else:
+            return f"<{tag(node)}{self._ser_attrs(node)}>"
 
     def _ser_content_node(self, node):
-        yield self._start_tag(node, close=False)
+        n = []
+        n.append(self._start_tag(node, close=False))
         for child in content(node):
             if isinstance(child, tuple):
                 for x in child:
-                    yield from self._ser_node(x)
+                    n.append(self._ser_node(x))
             else:
-                for x in self._ser_node(child):
-                    yield x
-        yield f"</{tag(node)}>"
+                n.append(self._ser_node(child))
+        n.append(f"</{tag(node)}>")
+        return "".join(n)
 
     def _ser_empty_node(self, node):
-        yield self._start_tag(node, close=True)
-
-    def _ser_active_element(self, node: Node):
-        # active element, receives attributes and content
-        # and then generates xml
-        node_obj = tag_obj(node)
-        node_obj.set_attrs(attrs(node))
-        node_obj.append(content(node))
-        yield self._ser_node(node_obj())
+        return self._start_tag(node, close=True)
 
     def _ser_sequence(self, node):
         # a sequence, list would imply a malformed element
+        n = []
         for x in node:
-            for y in self._ser_node(x):
-                yield y
+            n.append(self._ser_node(x))
+        return "".join(n)
 
     def _ser_atomic(self, node):
         if node:
-            if _is_active_element(node):
-                yield self._ser_node(tag(node)())  # type: ignore
-            else:
-                yield str(node)
+            return str(node)
         else:
             pass
 
