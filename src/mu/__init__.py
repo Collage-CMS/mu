@@ -156,11 +156,7 @@ class SugarNames:
         return attrs
 
 
-class Serializer:
-    pass
-
-
-class XmlSerializer(Serializer):
+class XmlSerializer:
     def __init__(self):
         self._names = SugarNames()
 
