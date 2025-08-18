@@ -156,9 +156,12 @@ class SugarNames:
         return attrs
 
 
+name_xf = SugarNames()
+
+
 class XmlSerializer:
     def __init__(self):
-        self._names = SugarNames()
+        self._names = name_xf
 
     def write(self, *nodes):
         return "".join(self._ser_sequence(list(nodes)))
@@ -302,7 +305,8 @@ def get_attr(name, node, default=None):
         if name in atts:
             return atts[name]
         return default
-    raise ValueError(node)
+    else:
+        raise ValueError(node)
 
 
 # Accessor functions
@@ -312,14 +316,16 @@ def tag(node) -> str:
     """The tag string of the element."""
     if _is_element(node):
         return node[0]
-    raise ERR_NOT_ELEMENT_NODE
+    else:
+        raise ERR_NOT_ELEMENT_NODE
 
 
 def tag_obj(node) -> Node:
     """The tag object of the element."""
     if _is_element(node):
         return node[0]
-    raise ERR_NOT_ELEMENT_NODE
+    else:
+        raise ERR_NOT_ELEMENT_NODE
 
 
 def attrs(node) -> dict:
@@ -329,7 +335,8 @@ def attrs(node) -> dict:
     if _is_element(node):
         if has_attrs(node):
             return node[1]
-        return {}
+        else:
+            return {}
     raise ERR_NOT_ELEMENT_NODE
 
 
@@ -337,7 +344,8 @@ def content(node) -> list:
     if _is_element(node) and len(node) > 1:
         children = node[2:] if isinstance(node[1], dict) else node[1:]
         return [x for x in children if x is not None]
-    return []
+    else:
+        return []
 
 
 def _is_active_node(node) -> bool:
@@ -360,22 +368,21 @@ def _is_empty_node(node) -> bool:
 
 def _expand_nodes(node):
     if _is_element(node):
-        print(f"expand element: {node}")
-        node_tag = tag(node)
-        node_attrs = attrs(node)
-        node_content = content(node)
         if _is_active_element(node):
             # in tag position
-            return node_tag(*node_content, **node_attrs)  # type: ignore
+            node_tag = tag(node)
+            node_attrs = attrs(node)
+            node_content = content(node)
+            return _expand_nodes(node_tag(*node_content, **node_attrs))  # type: ignore
         else:
-            mu = [node_tag]
-            print(f"mu1: {type(mu)}")
+            node = name_xf.transform(node)
+            mu = [tag(node)]
+            node_attrs = attrs(node)
             if len(node_attrs) > 0:
                 mu.append(node_attrs)  # type: ignore
-            mu.extend([_expand_nodes(child) for child in node_content])  # type: ignore
+            mu.extend([_expand_nodes(child) for child in content(node)])
             return mu
     elif isinstance(node, (list, tuple)):
-        print(f"expand list: {node}")
         mu = []
         for child in node:
             if child is not None:
@@ -383,10 +390,8 @@ def _expand_nodes(node):
         return mu
     elif _is_active_node(node):
         # not in tag position
-        print(f"expand active node: {node}")
         return node()
     else:
-        print(f"expand????: {node}")
         return node
 
 
