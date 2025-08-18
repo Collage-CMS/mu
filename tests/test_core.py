@@ -10,8 +10,18 @@ from mu import get_attr
 from mu import has_attrs
 from mu import html
 from mu import is_empty
+from mu import Node
 from mu import tag
 from mu import xml
+
+
+class UL(Node):
+    def __init__(self, **attrs):
+        super().__init__("ul", **attrs)
+
+    def __call__(self, *nodes, **attrs):
+        nodes = [["li", node] for node in nodes]
+        return super().__call__(*nodes, **attrs)
 
 
 class TestTagNames:
@@ -76,6 +86,13 @@ class TestIsElement:
 
     def test_is_not_active_element(self):
         assert _is_active_element([bool, 1, 2, 3]) is False
+
+    def test_is_active_element(self):
+        assert _is_element(UL()) is False
+        assert _is_element([UL()]) is True
+        assert _is_element([UL(), 1]) is True
+        assert _is_element([UL(), {}, 1]) is True
+        assert _is_element([UL(cls="foo"), 1, 2, 3]) is True
 
 
 class TestIsSpecialNode:

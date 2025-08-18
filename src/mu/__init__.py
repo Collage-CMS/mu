@@ -270,9 +270,12 @@ class SgmlSerializer(XmlSerializer):
     pass
 
 
-def _is_element(value) -> bool:
+def _is_element(node) -> bool:
+    # TODO more stringent name checking
     return (
-        isinstance(value, list) and len(value) > 0 and isinstance(value[0], str | Node)
+        isinstance(node, list | tuple)
+        and len(node) > 0
+        and (isinstance(node[0], str) or issubclass(type(node[0]), Node))
     )
 
 
@@ -357,26 +360,42 @@ def _is_empty_node(node) -> bool:
 
 def _expand_nodes(node):
     if _is_element(node):
+        print(f"expand element: {node}")
         node_tag = tag(node)
         node_attrs = attrs(node)
         node_content = content(node)
         if _is_active_element(node):
+            # in tag position
             return node_tag(*node_content, **node_attrs)  # type: ignore
-        mu = []
-        mu.append(node_tag)
-        if len(node_attrs) > 0:
-            mu.append(node_attrs)
-        mu.extend([_expand_nodes(child) for child in node_content])
-        return mu
-    if isinstance(node, (list, tuple)):
+        else:
+            mu = [node_tag]
+            print(f"mu1: {type(mu)}")
+            if len(node_attrs) > 0:
+                mu.append(node_attrs)  # type: ignore
+            mu.extend([_expand_nodes(child) for child in node_content])  # type: ignore
+            return mu
+    elif isinstance(node, (list, tuple)):
+        print(f"expand list: {node}")
         mu = []
         for child in node:
             if child is not None:
                 mu.append(_expand_nodes(child))
         return mu
-    if _is_active_node(node):
+    elif _is_active_node(node):
+        # not in tag position
+        print(f"expand active node: {node}")
         return node()
-    return node
+    else:
+        print(f"expand????: {node}")
+        return node
+
+
+def expand(*nodes):
+    """Expand Mu datastructure nodes."""
+    if len(nodes) == 1:
+        return _expand_nodes(nodes[0])
+    else:
+        return _expand_nodes(nodes)
 
 
 def _apply_nodes(node, rules: dict):
@@ -401,11 +420,6 @@ def _apply_nodes(node, rules: dict):
                 mu.append(_apply_nodes(child, rules))
         return mu
     return node
-
-
-def expand(nodes):
-    """Expand a Mu datastructure (invoking all Mu objects mu() method)."""
-    return _expand_nodes(nodes)
 
 
 def apply(nodes, rules: dict):
