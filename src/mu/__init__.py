@@ -18,6 +18,11 @@ ERR_NOT_ELEMENT_NODE = ValueError("Not an element node.")
 
 ATOMIC_VALUE = {int, str, float, complex, bool, str}
 
+QNAME_START = r"([A-Z]|_|[a-z]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|[\u00F8-\u02FF]|[\u0370-\u037D]|[\u037F-\u1FFF]|[\u200C-\u200D]|[\u2070-\u218F]|[\u2C00-\u2FEF]|[\u3001-\uD7FF]|[\uF900-\uFDCF]|[\U0000FDF0-\U0000FFFD]|[\U00010000-\U000EFFFF])"  # noqa
+QNAME_CHAR = r"-|\.|[0-9]|\u00B7|[\u0300-\u036F]|[\u203F-\u2040]"
+QNAME = rf"^{QNAME_START}({QNAME_START}|{QNAME_CHAR})*$"
+QNAME_RE = re.compile(QNAME)
+
 
 class Node:
     """Base class for active markup nodes."""
@@ -218,21 +223,31 @@ class XmlSerializer:
         else:
             pass
 
+    def _is_qname(self, name: str) -> bool:
+        if QNAME_RE.match(name):
+            return True
+        else:
+            return False
+
     def _ser_attrs(self, node) -> str:
         node_attrs = attrs(node)
         output = []
         for name, value in sorted(node_attrs.items()):
-            if value is None:
-                pass
-            elif isinstance(value, bool):
-                if value:
-                    output.append(f' {name}="{name}"')
-            elif isinstance(value, list | tuple):
-                output.append(
-                    f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"',  # noqa
-                )
+            if self._is_qname(name):
+                if value is None:
+                    pass
+                elif isinstance(value, bool):
+                    if value:
+                        output.append(f' {name}="{name}"')
+                elif isinstance(value, list | tuple):
+                    output.append(
+                        f' {name}="{util.escape_html(" ".join([str(item) for item in value]))}"',  # noqa
+                    )
+                else:
+                    output.append(f' {name}="{util.escape_html(value)}"')
             else:
-                output.append(f' {name}="{util.escape_html(value)}"')
+                # just drop non qnames
+                pass
         return "".join(output)
 
     def _ser_special_node(self, node: list) -> str:
