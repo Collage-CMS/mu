@@ -1,6 +1,6 @@
 [project]
 name = "mu-xml"
-version = "0.1.2"
+version = "0.1.3"
 description = "Represent HTML and XML using Python data structures."
 authors = [
     {name = "xokomola", email = "marc.van.grootel@gmail.com"}
