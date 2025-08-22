@@ -190,7 +190,7 @@ class XmlSerializer:
             return self._ser_special_node(node)
         else:
             node = self._names.transform(node)
-            if _is_empty_node(node):
+            if is_empty(node):
                 return self._ser_empty_node(node)
             else:  # content to process
                 return self._ser_content_node(node)
@@ -208,10 +208,13 @@ class XmlSerializer:
             raise ERR_QNAME
 
     def _ser_content_node(self, node):
+        # BUG: this is not called for empty elements
         n = []
         n.append(self._start_tag(node, close=False))
         for child in content(node):
-            if isinstance(child, tuple):
+            if child is None or child == "":
+                pass
+            elif isinstance(child, tuple):
                 for x in child:
                     n.append(self._ser_node(x))
             else:
@@ -223,7 +226,8 @@ class XmlSerializer:
         return f"</{tag(node)}>"
 
     def _ser_empty_node(self, node):
-        return self._start_tag(node, close=True)
+        n = self._start_tag(node, close=True)
+        return n
 
     def _ser_sequence(self, node):
         # a sequence, list would imply a malformed element
@@ -341,10 +345,6 @@ def is_special_node(value) -> bool:
     return is_element(value) and isinstance(value[0], str) and value[0][0] == "$"
 
 
-def is_empty(node) -> bool:
-    return bool(len(node) == 1 or (len(node) == 2 and isinstance(node[1], dict)))
-
-
 def has_attrs(value) -> bool:
     return (
         is_element(value)
@@ -417,8 +417,30 @@ def _is_sequence(node) -> bool:
     return isinstance(node, list | tuple)
 
 
-def _is_empty_node(node) -> bool:
-    return len(content(node)) == 0
+# return bool(len(node) == 1 or (len(node) == 2 and isinstance(node[1], dict)))
+
+
+def is_empty(node) -> bool:
+    if node is None:
+        return True
+    elif node == "":
+        return True
+    elif is_element(node):
+        children = content(node)
+        if len(children) == 0:
+            return True
+    return False
+
+
+# def _is_empty_node(node) -> bool:
+#    child_nodes = content(node)
+#    if len(child_nodes) == 0:
+#        return True
+#    else:
+#        if len("".join(child_nodes)) == 0:
+#            return True
+#       else:
+#            return False
 
 
 def _expand_nodes(node):

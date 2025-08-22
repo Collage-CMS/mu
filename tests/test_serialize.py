@@ -10,6 +10,18 @@ class TestSerializeXml:
     def test_empty_element(self):
         assert xml(["div"]) == "<div/>"
 
+    def test_element_with_empty_string(self):
+        assert xml(["p", ""]) == "<p></p>"
+
+    def test_element_with_multiple_empty_strings(self):
+        assert xml(["p", "", "", ""]) == "<p></p>"
+
+    def test_element_with_multiple_mix(self):
+        assert xml(["p", "", None, ""]) == "<p></p>"
+
+    def test_element_with_none_(self):
+        assert xml(["p", None]) == "<p/>"
+
 
 class TestAttributeFormatting:
     def test_escaping(self):
