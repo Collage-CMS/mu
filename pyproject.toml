@@ -33,10 +33,11 @@ mu = "mu.__main__:main"
 [tool.uv]
 dev-dependencies = [
     "pre-commit==4.3.0",
+    "pre-commit-update==0.8.0",
     "pytest==8.4.1",
     "pytest-cov==6.2.1",
-    "ruff==0.12.9",
-    "ty>=0.0.1a18",
+    "ruff==0.12.10",
+    "ty>=0.0.1a19",
 ]
 
 [tool.hatch.build.targets.wheel]
