@@ -8,7 +8,9 @@
 #
 from __future__ import annotations
 
+import logging
 import re
+import sys
 from typing import Callable
 from typing import Union
 
@@ -218,8 +220,11 @@ class XmlSerializer:
                 for x in child:
                     n.append(self._ser_node(x))
             else:
-                n.append(self._ser_node(child))
+                c = self._ser_node(child)
+                if c is not None:
+                    n.append(c)
         n.append(self._close_tag(node))
+        sys.stderr.write(f"DEBUG: {str(n)}")
         return "".join(n)
 
     def _close_tag(self, node):
