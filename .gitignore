@@ -19,7 +19,7 @@ wheels/
 
 # Coverage
 .tox*
-.coverage*
+.coverage
 .metacov
 coverage.json
 coverage.xml
