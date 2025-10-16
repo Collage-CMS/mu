@@ -224,7 +224,6 @@ class XmlSerializer:
                 if c is not None:
                     n.append(c)
         n.append(self._close_tag(node))
-        sys.stderr.write(f"DEBUG: {str(n)}")
         return "".join(n)
 
     def _close_tag(self, node):
