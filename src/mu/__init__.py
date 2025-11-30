@@ -207,6 +207,7 @@ class XmlSerializer:
             else:
                 return f"<{tag(node)}{self._ser_attrs(node)}>"
         else:
+            print("NODE:", tag(node))
             raise ERR_QNAME
 
     def _ser_content_node(self, node):
